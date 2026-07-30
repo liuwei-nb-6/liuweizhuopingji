@@ -52,6 +52,7 @@ body{
   padding:12px 22px;border:none;border-radius:10px;font-size:0.9rem;font-weight:600;
   cursor:pointer;font-family:inherit;transition:all 0.25s;white-space:nowrap;
   -webkit-tap-highlight-color:transparent;user-select:none;
+  touch-action:manipulation;-ms-touch-action:manipulation;
 }
 .btn-generate{background:#e8b86d;color:#1a1a1a}
 .btn-generate:hover{background:#f0cc7a}
@@ -216,8 +217,8 @@ body{
   <div class="search-section">
     <div class="search-box">
       <input type="text" id="cityInput" placeholder="输入城市名，如：赣州、重庆、大理…" autocomplete="off" autocorrect="off">
-      <button class="btn btn-generate" onclick="onGenerate()">🔍 生成灵感</button>
-      <button class="btn btn-random" onclick="onRandom()">🎲 随机探索</button>
+      <button class="btn btn-generate" id="btnGenerate" ontouchstart="" onmousedown="">🔍 生成灵感</button>
+      <button class="btn btn-random" id="btnRandom" ontouchstart="" onmousedown="">🎲 随机探索</button>
     </div>
   </div>
   <div class="loading" id="loading"><div class="spinner"></div><p style="color:#888;margin-top:8px">正在为你搜寻城市灵感…</p></div>
@@ -225,6 +226,11 @@ body{
   <div class="footer">献给每一个想记录城市的你 · 学生穷拍专用版</div>
 </div>
 <script>
+// ==================== 常驻城市 & 工具函数 ====================
+var CURRENT_HOME = "南昌";
+function getHomeCity() { return document.getElementById("homeCity").value; }
+function onHomeCityChange() { CURRENT_HOME = getHomeCity(); var c = document.getElementById("cityInput").value.trim(); if (c) { onGenerate(); } }
+
 // ==================== 城市数据库 ====================
 // 每个城市包含：province省份, region地区, tags标签, keywords关键词, locations地点, food美食, themes选题, scriptFocus剧本焦点, sunrise/sunset日出日落, bestHours最佳拍摄时段, easterEggs彩蛋, weather气候
 var CITY_DATABASE = {
@@ -756,8 +762,12 @@ function renderAll(cityName) {
     loading.classList.remove("active");
     results.classList.add("active");
 
-    // 滚动到结果区域
-    results.scrollIntoView({behavior:"smooth",block:"start"});
+    // 滚动到结果区域（移动端兼容写法）
+    try {
+      results.scrollIntoView({block:"start"});
+    } catch(e2) {
+      window.scrollTo(0, results.offsetTop);
+    }
   }, 400);
 }
 
@@ -778,17 +788,38 @@ function onRandom() {
   renderAll(randomKey);
 }
 
-// 回车键触发搜索
-document.getElementById("cityInput").addEventListener("keydown", function(e){
-  if (e.key === "Enter") { onGenerate(); }
-});
+// ==================== 绑定事件（极简兼容版） ====================
+(function() {
+  var genBtn = document.getElementById("btnGenerate");
+  var randBtn = document.getElementById("btnRandom");
+  var input = document.getElementById("cityInput");
+
+  // 简单 click 绑定（移动端 Safari 会正确处理 click 事件）
+  if (genBtn) genBtn.onclick = function() { onGenerate(); return false; };
+  if (randBtn) randBtn.onclick = function() { onRandom(); return false; };
+
+  // 回车搜索
+  if (input) input.onkeydown = function(e) {
+    if (e.key === "Enter" || e.keyCode === 13) { onGenerate(); return false; }
+  };
+})();
 
 // ==================== 默认加载 ====================
-window.addEventListener("DOMContentLoaded", function(){
-  document.getElementById("cityInput").value = "成都";
-  CURRENT_HOME = getHomeCity();
-  renderAll("成都");
-});
+function boot() {
+  try {
+    document.getElementById("cityInput").value = "成都";
+    CURRENT_HOME = getHomeCity();
+    renderAll("成都");
+  } catch(e) {
+    // 静默处理，避免阻塞页面
+  }
+}
+// 如果 DOM 已经加载完则直接启动，否则等待事件
+if (document.readyState === "complete" || document.readyState === "interactive") {
+  setTimeout(boot, 50);
+} else {
+  window.addEventListener("DOMContentLoaded", function() { setTimeout(boot, 50); });
+}
 
 </script>
 </body>
