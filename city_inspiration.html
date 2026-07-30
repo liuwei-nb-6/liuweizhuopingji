@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d0d0d">
+<title>城市灵感探测器 学生穷拍专用版</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+  background:#0d0d0d;color:#e0e0e0;line-height:1.7;min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+.app-container{max-width:700px;margin:0 auto;padding:16px 16px 60px}
+.header{text-align:center;padding:32px 0 8px}
+.header .icon-row{font-size:36px;margin-bottom:4px}
+.header h1{font-size:clamp(1.35rem,3.5vw,1.8rem);font-weight:700;color:#f0f0f0;letter-spacing:0.04em;margin-bottom:6px}
+.header .subtitle{font-size:0.9rem;color:#a0a0a0;margin-bottom:4px}
+.header .usage-hint{
+  display:inline-block;font-size:0.75rem;color:#7a7a7a;
+  background:#1a1a1a;border:1px solid #2a2a2a;border-radius:20px;
+  padding:4px 16px;margin-top:4px;
+}
+.home-selector{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:6px 0 10px;flex-wrap:wrap;
+}
+.home-selector label{font-size:0.82rem;color:#c0c0c0;white-space:nowrap}
+.home-selector select{
+  background:#1a1a1a;color:#e8b86d;border:1px solid #3a3a3a;border-radius:8px;
+  padding:7px 14px;font-size:0.82rem;cursor:pointer;outline:none;
+  font-family:inherit;-webkit-appearance:none;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23e8b86d' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;padding-right:30px;
+}
+.search-section{padding:12px 0 20px}
+.search-box{
+  display:flex;gap:8px;max-width:500px;margin:0 auto;flex-wrap:wrap;justify-content:center;
+}
+.search-box input{
+  flex:1;min-width:180px;background:#1a1a1a;color:#f0f0f0;border:1px solid #3a3a3a;
+  border-radius:10px;padding:12px 16px;font-size:1rem;outline:none;
+  font-family:inherit;transition:border-color 0.25s;
+}
+.search-box input:focus{border-color:#e8b86d}
+.search-box input::placeholder{color:#5a5a5a}
+.btn{
+  padding:12px 22px;border:none;border-radius:10px;font-size:0.9rem;font-weight:600;
+  cursor:pointer;font-family:inherit;transition:all 0.25s;white-space:nowrap;
+  -webkit-tap-highlight-color:transparent;user-select:none;
+}
+.btn-generate{background:#e8b86d;color:#1a1a1a}
+.btn-generate:hover{background:#f0cc7a}
+.btn-generate:active{transform:scale(0.96)}
+.btn-random{background:transparent;color:#e8b86d;border:1px solid #e8b86d}
+.btn-random:hover{background:#1a1810}
+.btn-random:active{transform:scale(0.96)}
+.loading{text-align:center;padding:30px;display:none}
+.loading.active{display:block}
+.loading .spinner{
+  display:inline-block;width:32px;height:32px;border:3px solid #2a2a2a;
+  border-top-color:#e8b86d;border-radius:50%;animation:spin 0.7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.results{display:none}
+.results.active{display:block}
+.card{
+  background:#1a1a1a;border:1px solid #2a2a2a;border-radius:14px;
+  padding:20px 18px;margin-bottom:16px;
+  animation:fadeUp 0.45s ease-out both;
+  overflow:hidden;
+}
+.card:nth-child(1){animation-delay:0s}
+.card:nth-child(2){animation-delay:0.06s}
+.card:nth-child(3){animation-delay:0.12s}
+.card:nth-child(4){animation-delay:0.18s}
+.card:nth-child(5){animation-delay:0.24s}
+.card:nth-child(6){animation-delay:0.30s}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.card-header{
+  display:flex;align-items:center;gap:8px;margin-bottom:14px;
+  padding-bottom:10px;border-bottom:1px solid #2a2a2a;
+}
+.card-header .card-icon{font-size:1.4rem}
+.card-header h2{font-size:1.05rem;font-weight:700;color:#f0f0f0}
+.tag-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.tag{
+  display:inline-block;font-size:0.78rem;padding:4px 12px;
+  background:#2a2015;color:#e8b86d;border:1px solid #4a3820;
+  border-radius:20px;white-space:nowrap;
+}
+.city-narration{
+  background:linear-gradient(135deg,#1e1810,#1a1a1a);border-left:3px solid #e8b86d;
+  padding:12px 16px;margin:12px 0;border-radius:0 10px 10px 0;
+  font-style:italic;color:#d0d0d0;font-size:0.92rem;line-height:1.8;
+}
+.food-section{margin:10px 0}
+.food-section .food-label{font-size:0.8rem;color:#a0a0a0;margin-bottom:4px}
+.loc-item{
+  padding:8px 0;border-bottom:1px solid #222;
+  display:flex;gap:8px;align-items:flex-start;
+}
+.loc-item:last-child{border-bottom:none}
+.loc-item .loc-num{
+  flex-shrink:0;width:24px;height:24px;background:#2a2015;color:#e8b86d;
+  border-radius:50%;text-align:center;line-height:24px;font-size:0.75rem;font-weight:700;
+}
+.loc-item .loc-info{flex:1}
+.loc-item .loc-name{font-weight:600;color:#f0f0f0;font-size:0.92rem}
+.loc-item .loc-type{font-size:0.75rem;color:#888;margin-left:6px}
+.loc-item .loc-note{font-size:0.78rem;color:#b0b0b0;margin-top:2px}
+.loc-item .loc-risk{font-size:0.75rem;color:#e8a84c;margin-top:2px;background:#1a1510;display:inline-block;padding:2px 8px;border-radius:4px}
+.theme-item{padding:14px 0;border-bottom:1px solid #222}
+.theme-item:last-child{border-bottom:none}
+.theme-item .theme-title{font-size:0.98rem;font-weight:700;color:#e8b86d;margin-bottom:4px}
+.theme-item .theme-desc{font-size:0.85rem;color:#c0c0c0;margin-bottom:4px}
+.theme-item .theme-value{font-size:0.8rem;color:#888;font-style:italic}
+.storyboard-meta{
+  display:flex;flex-wrap:wrap;gap:16px;margin-bottom:14px;
+  font-size:0.82rem;color:#b0b0b0;
+}
+.storyboard-meta span{background:#1e1e1e;padding:4px 12px;border-radius:6px}
+.storyboard-meta strong{color:#e8b86d}
+.sb-table-wrap{
+  overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px;
+  border-radius:8px;
+}
+.sb-table{
+  width:100%;min-width:600px;border-collapse:collapse;font-size:0.78rem;
+}
+.sb-table th{
+  background:#1e1810;color:#e8b86d;padding:10px 6px;text-align:left;
+  font-weight:600;white-space:nowrap;position:sticky;top:0;
+}
+.sb-table td{padding:8px 6px;border-bottom:1px solid #222;vertical-align:top;color:#c0c0c0}
+.sb-table .shot-a{color:#e8b86d;font-weight:600}
+.sb-table .shot-b{color:#8ab4d8;font-weight:600}
+.sb-table tr:hover td{background:#1e1e1e}
+.budget-section{margin:12px 0}
+.budget-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #222;font-size:0.88rem}
+.budget-row .cost{font-weight:600;color:#e8b86d;white-space:nowrap}
+.budget-total{
+  background:#1e1810;border:1px solid #4a3820;border-radius:10px;
+  padding:14px 16px;margin-top:12px;
+}
+.budget-total .total-row{display:flex;justify-content:space-between;font-size:1rem;font-weight:700;color:#f0f0f0}
+.budget-total .extreme-row{
+  display:flex;justify-content:space-between;font-size:0.82rem;color:#a0a0a0;
+  margin-top:8px;padding-top:8px;border-top:1px dashed #3a3a3a;
+}
+.budget-notice{
+  font-size:0.75rem;color:#888;margin-top:8px;
+  background:#151515;padding:8px 12px;border-radius:6px;
+}
+.tips-list{list-style:none}
+.tips-list li{padding:10px 0;border-bottom:1px solid #222;font-size:0.88rem;display:flex;gap:8px;align-items:flex-start}
+.tips-list li:last-child{border-bottom:none}
+.tips-list .tip-icon{flex-shrink:0;font-size:1rem}
+.tips-list .tip-content{flex:1;color:#c0c0c0}
+.tips-list .tip-content strong{color:#f0f0f0}
+.tips-quote{
+  background:#1a1810;border-left:3px solid #e8b86d;
+  padding:10px 14px;margin-top:8px;border-radius:0 8px 8px 0;
+  font-size:0.85rem;color:#d0d0d0;font-style:italic;
+}
+.easter-egg{
+  background:linear-gradient(135deg,#1a1510,#151515);
+  border:1px dashed #4a3820;border-radius:10px;
+  padding:14px 16px;margin:8px 0;font-size:0.88rem;
+  color:#d0c0a0;
+}
+.fallback-notice{
+  background:#1a1010;border:1px solid #4a2020;border-radius:8px;
+  padding:10px 14px;margin-bottom:16px;font-size:0.82rem;color:#e8a84c;
+}
+.footer{
+  text-align:center;padding:20px 0 40px;font-size:0.78rem;color:#5a5a5a;
+  letter-spacing:0.02em;
+}
+@media(max-width:480px){
+  .app-container{padding:10px 10px 50px}
+  .header{padding:20px 0 6px}
+  .header h1{font-size:1.25rem}
+  .card{padding:16px 12px;border-radius:12px}
+  .search-box input{font-size:0.9rem;padding:10px 14px}
+  .btn{padding:10px 16px;font-size:0.82rem}
+  .sb-table{font-size:0.7rem}
+  .sb-table th,.sb-table td{padding:6px 4px}
+  .tag{font-size:0.72rem;padding:3px 10px}
+}
+@media(min-width:768px){
+  .app-container{padding:20px 24px 80px}
+  .card{padding:24px 22px}
+}
+</style>
+</head>
+<body>
+<div class="app-container">
+  <div class="header">
+    <div class="icon-row">🎥</div>
+    <h1>📍 城市灵感探测器</h1>
+    <p class="subtitle">输入一座城，收获一部短片</p>
+    <p class="usage-hint">💡 输入城市名，点击探索，灵感即刻出现</p>
+  </div>
+  <div class="home-selector">
+    <label for="homeCity">🏠 我的常驻城市：</label>
+    <select id="homeCity" onchange="onHomeCityChange()">
+      <option value="南昌" selected>南昌</option>
+      <option value="赣州">赣州</option>
+    </select>
+  </div>
+  <div class="search-section">
+    <div class="search-box">
+      <input type="text" id="cityInput" placeholder="输入城市名，如：赣州、重庆、大理…" autocomplete="off" autocorrect="off">
+      <button class="btn btn-generate" onclick="onGenerate()">🔍 生成灵感</button>
+      <button class="btn btn-random" onclick="onRandom()">🎲 随机探索</button>
+    </div>
+  </div>
+  <div class="loading" id="loading"><div class="spinner"></div><p style="color:#888;margin-top:8px">正在为你搜寻城市灵感…</p></div>
+  <div class="results" id="results"></div>
+  <div class="footer">献给每一个想记录城市的你 · 学生穷拍专用版</div>
+</div>
+<script>
+// ==================== 城市数据库 ====================
+// 每个城市包含：province省份, region地区, tags标签, keywords关键词, locations地点, food美食, themes选题, scriptFocus剧本焦点, sunrise/sunset日出日落, bestHours最佳拍摄时段, easterEggs彩蛋, weather气候
+var CITY_DATABASE = {
+
+"北京":{province:"北京",region:"华北",tags:["千年古都","国际都市","胡同文化","皇城根下","京剧之乡"],keywords:["大气磅礴","古今交织","市井胡同","红色文化","快节奏"],food:["北京烤鸭","炸酱面","豆汁焦圈","卤煮火烧","涮羊肉"],locations:[{name:"后海银锭桥至南锣鼓巷一线",type:"胡同街区",note:"🎯 提前踩点：南锣主街游客爆满，建议拐入两侧支巷（如蓑衣胡同、雨儿胡同），清晨7点前无人",risk:"⚠️ 南锣鼓巷主街禁止商业拍摄，需避开保安巡逻"},{name:"景山公园万春亭",type:"观景台",note:"🎯 俯瞰故宫全景的绝佳机位，日落前1小时光线最佳",risk:null},{name:"牛街清真超市周边",type:"市井生活区",note:"最有烟火气的北京，建议周五下午去，回族同胞做礼拜前采购",risk:"⚠️ 拍摄清真寺区域请尊重宗教场所，勿入内拍摄"}],themes:[{title:"胡同深处的最后一代鸽哨匠人",desc:"跟拍一位胡同鸽哨手艺人的日常，记录即将消失的京城声音",value:"鸽哨是老北京天空的声音记忆，随着胡同拆迁和老手艺人离去，这种声音正在消失——这是正在发生的活历史"},{title:"凌晨三点的北京：城市守夜人图鉴",desc:"从24小时便利店到环卫工人，记录天亮前维持城市运转的无名者",value:"北京的快节奏背后，是一群昼夜颠倒的劳动者，他们的故事才是这座城市最真实的脉搏"},{title:"钟鼓楼下的时间辩证法",desc:"以钟鼓楼为轴心，对比拍摄周边胡同里的慢生活与远处CBD的快节奏",value:"北京最迷人的张力在于古今速度的撕裂感——600年的钟鼓楼与3公里外的国贸，彼此对视"}],scriptFocus:0,sunrise:"04:50(夏)/07:30(冬)",sunset:"19:40(夏)/16:50(冬)",bestHours:"05:30-08:00 / 16:00-19:00",easterEggs:["试试凌晨4点去景山东街，看胡同里的早点摊亮起第一盏灯","去潘家园旧货市场周五凌晨的鬼市，但不能拍人脸"],weather:"温带季风气候，春短秋爽，冬季干冷，夏季闷热"},
+
+"上海":{province:"上海",region:"华东",tags:["魔都","海派文化","弄堂记忆","东方巴黎","咖啡之城"],keywords:["精致与市井并存","弄堂烟火","国际化","小资情调","摩登与传统"],food:["生煎包","小笼包","葱油拌面","本帮红烧肉","排骨年糕"],locations:[{name:"外滩万国建筑博览群至外白渡桥",type:"滨江景观带",note:null,risk:"⚠️ 外滩人流极大，需凌晨5:30前到达才能拍到空镜；无人机禁飞区"},{name:"老西门至文庙一带老城厢",type:"旧改街区",note:"🎯 上海最后的弄堂原生社区，许多地块已征收，建议尽快去拍",risk:"⚠️ 部分区域已围挡施工，注意安全"},{name:"武康路-安福路-五原路三角区",type:"历史街区",note:"法租界最美梧桐大道，秋天落叶时最佳",risk:"⚠️ 周末人山人海，且部分店铺禁止室内拍摄"}],themes:[{title:"老城厢拆迁前夕：最后的弄堂人家",desc:"记录上海老西门一带征收中的弄堂，拍摄最后一批原生居民的生活",value:"上海的弄堂正在以惊人的速度消失，每一次拆迁都是一段海派生活记忆的终结"},{title:"外滩晨与夜：一座城市的两种呼吸",desc:"从凌晨5点的外滩晨练老人，到深夜的外滩灯光秀散场后",value:"外滩是上海的名片，但大多数人的镜头只对准灯光——那些在名片背后生活的人，才是真正的主角"},{title:"菜市场里的上海话：一门方言的生命力",desc:"走进三角地菜场或乌中市集，记录摊贩与顾客间的上海话对话",value:"上海话正在年轻一代中快速流失，菜市场是为数不多还能听到纯正沪语的地方"}],scriptFocus:0,sunrise:"04:55(夏)/06:50(冬)",sunset:"18:55(夏)/17:00(冬)",bestHours:"05:00-07:30 / 16:00-18:30",easterEggs:["去杨浦区的定海桥，拍摄即将改造的老工业区","凌晨坐轮渡从浦西到浦东，在江心拍两岸的日出"],weather:"亚热带季风气候，四季分明，夏季湿热多雷雨，冬季湿冷"},
+
+"广州":{province:"广东",region:"华南",tags:["千年商都","食在广州","花城","岭南文化","骑楼之乡"],keywords:["烟火气","市井味浓","包容务实","老广情怀","商贸活力"],food:["肠粉","煲仔饭","云吞面","白切鸡","糖水","烧鹅"],locations:[{name:"上下九-第十甫路-恩宁路骑楼群",type:"历史街区",note:"🎯 恩宁路是广州最美骑楼街，永庆坊改造后新旧融合，适合拍摄城市更新主题",risk:"⚠️ 上下九人流极大，建议工作日早晨8点前"},{name:"荔湾湖公园至泮塘五约",type:"老城区公园",note:"🎯 早上6点开始有粤剧私伙局、太极、踢毽子，广州最地道的市井生活",risk:null},{name:"一德路海味干货街+石室圣心大教堂",type:"特色街区",note:"亚洲最大的石构哥特教堂与市井干货街仅一墙之隔，反差感极强",risk:"⚠️ 教堂内部拍摄需申请许可"}],themes:[{title:"骑楼下的最后一代凉茶铺",desc:"寻找老城区仍在经营的传统凉茶铺，记录一碗癍痧凉茶背后的岭南中医药文化",value:"凉茶是岭南人的生活信仰，当奶茶店遍布街头，那些挂着'妙手回春'招牌的老凉茶铺正在消逝"},{title:"凌晨四点的黄沙水产市场",desc:"跟拍水产市场从凌晨到天亮的完整运转，鱼贩、酒楼采购、物流工人的深夜故事",value:"食在广州不是一句口号——了解一座爱吃之城，要从凌晨的食材供应链开始"},{title:"老西关的粤剧私伙局",desc:"每周固定的荔湾湖公园里的粤剧爱好者聚会，一群平均年龄70+的票友",value:"粤剧是岭南文化的灵魂，这些自发组织的私伙局是活着的非遗，也是临终关怀式的记录"}],scriptFocus:0,sunrise:"05:45(夏)/07:05(冬)",sunset:"19:10(夏)/17:50(冬)",bestHours:"05:30-08:00 / 16:30-18:30",easterEggs:["去龙津西路看凌晨的猪肉佬用单车运半头猪","坐一次1路公交车从头到尾，拍车窗外的老广州"],weather:"亚热带季风气候，夏季漫长湿热，冬季温暖短暂，多雨"},
+
+"深圳":{province:"广东",region:"华南",tags:["科技之都","移民城市","年轻活力","设计之都","滨海新城"],keywords:["快节奏","创新","年轻化","山海城","奋斗者"],food:["光明乳鸽","沙井蚝","椰子鸡","猪脚饭","潮汕牛肉火锅"],locations:[{name:"华强北电子市场",type:"商业街区",note:"🎯 赛博朋克感最强的中国街道，柜台老板、背包客、电子零件构成独特生态",risk:"⚠️ 很多柜台禁止拍摄，需先口头沟通"},{name:"南头古城",type:"城中村改造",note:"深圳最古老的城中村经过改造，新旧建筑交错，城市更新绝佳样本",risk:null},{name:"深圳湾公园日出剧场",type:"滨海公园",note:"面朝香港方向拍摄日出，深圳城市天际线与海湾同框",risk:"⚠️ 无人机禁飞，靠近边境"}],themes:[{title:"华强北柜台背后：一个电子江湖的日与夜",desc:"在华强北跟拍一位柜台老板的一天，从开档到收工",value:"华强北是中国电子产业的毛细血管，每一个柜台背后都是一个关于草根创业的故事"},{title:"城中村里的深二代：夹在故乡与城市之间",desc:"跟拍白石洲/上下沙城中村里长大的深二代，记录他们对这座城市的认同感",value:"深圳是一个没有'本地人'的城市——第一代移民的孩子如何定义故乡？"},{title:"24小时书吧：一座不眠城市的阅读者",desc:"深圳中心书城24小时书吧里凌晨的读者群像",value:"深圳的快节奏常被误解为文化荒漠，但这座城市有全国最多的24小时书店"}],scriptFocus:0,sunrise:"05:40(夏)/07:00(冬)",sunset:"19:05(夏)/17:45(冬)",bestHours:"05:30-08:00 / 16:30-18:30",easterEggs:["去蛇口渔人码头凌晨渔船回港，看第一手海鲜交易","坐地铁4号线到终点清湖，拍摄深圳边缘的城市边界"],weather:"亚热带海洋性气候，夏季湿热漫长，冬季温暖干燥"},
+
+"杭州":{province:"浙江",region:"华东",tags:["人间天堂","西湖烟雨","数字经济之都","龙井茶乡","南宋古韵"],keywords:["诗意","精致","慢生活","互联网活力","山水城林"],food:["西湖醋鱼","东坡肉","片儿川","龙井虾仁","定胜糕","葱包桧"],locations:[{name:"西湖杨公堤-茅家埠一线",type:"湖畔景观",note:"🎯 相比断桥苏堤，这里游客少80%，水质清透，适合拍烟波浩渺感",risk:null},{name:"大马弄-十五奎巷-城隍牌楼",type:"老城区街巷",note:"杭州最地道的老底子市井，酱鸭店、山货铺、老式理发店密集",risk:"⚠️ 巷子窄，早市人挤人"},{name:"龙井村-满觉陇茶园",type:"茶山村落",note:"🎯 清明前后采茶季绝佳，平时也可拍茶农日常",risk:"⚠️ 私家茶园勿擅入"}],themes:[{title:"西湖晨间的六个瞬间",desc:"从凌晨5点到上午11点，记录西湖边六个不同时段的人群与光影变化",value:"大多数人来西湖是打卡式的——真正的西湖属于那些每天清晨在湖边生活的人"},{title:"龙井村：一片茶叶的时间之旅",desc:"跟拍龙井村茶农的一天，从清晨采茶到手工炒制的全过程",value:"龙井茶是杭州最著名的文化符号，但手工炒茶技艺正在被机器取代"},{title:"大马弄的消失：老杭州市井的最后影像",desc:"记录大马弄菜市场及周边老街的日常，这里正在面临改造",value:"杭州越来越精致，也越来越陌生——老底子的杭州市井正在被网红化改造吞噬"}],scriptFocus:0,sunrise:"05:05(夏)/06:55(冬)",sunset:"18:55(夏)/17:05(冬)",bestHours:"05:00-07:30 / 16:00-18:30",easterEggs:["秋天去满觉陇拍桂花雨，凌晨5点独占整条路","坐水上巴士7号线从坝子桥到梅花碑，三块钱游杭州"],weather:"亚热带季风气候，四季分明，春秋最美但短暂，梅雨季闷湿"},
+
+"成都":{province:"四川",region:"西南",tags:["天府之国","休闲之都","火锅之城","熊猫故乡","茶馆文化"],keywords:["慢节奏","烟火气","包容","安逸","市井生活","美食天堂"],food:["火锅","串串香","担担面","龙抄手","兔头","三大炮","钟水饺","蛋烘糕"],locations:[{name:"人民公园鹤鸣茶社",type:"茶馆",note:"🎯 提前踩点：周末人极多，竹椅一座难求，建议工作日早晨7点到达",risk:null},{name:"玉林综合市场及周边街区",type:"菜市场+社区",note:"最具烟火气的老成都生活圈，摊主普遍友善，沟通后愿意出镜",risk:"⚠️ 菜市场内注意脚下湿滑，保护好设备"},{name:"彭镇老茶馆（双流区）",type:"老茶馆",note:"🎯 距市区约1小时车程，百年老茶馆，光线绝佳，摄影师天堂",risk:"⚠️ 已成为摄影打卡点，想拍原生状态需错峰"}],themes:[{title:"茶馆里的成都慢时光",desc:"跟随一位老茶客的一天，记录鹤鸣茶社里的人情冷暖与时光流逝",value:"茶馆是成都生活方式的终极缩影——一把竹椅、一杯盖碗茶、一桌麻将，就是成都人理解时间的方式"},{title:"菜市场后厨：川菜的灵魂不在餐厅",desc:"跟拍玉林菜市场从凌晨进货到傍晚收摊的完整一天",value:"成都的美食不在网红店，在菜市场——那些你叫不出名字的香料、泡菜坛子和嬢嬢手中的豆瓣酱，才是川菜真正的灵魂"},{title:"三环外的成都：一个新一线城市的B面",desc:"到绕城外的犀浦、大丰、龙泉驿，拍摄城市扩张中的城乡结合部",value:"成都以安逸著称，但三环外的成都人过着完全不同的生活——这才是真实的成都"}],scriptFocus:0,sunrise:"06:05(夏)/07:55(冬)",sunset:"20:05(夏)/18:10(冬)",bestHours:"06:00-08:30 / 17:00-19:30",easterEggs:["试试凌晨5点去文殊院，听僧人们上早课，免费的ASMR","去曹家巷拍摄即将消失的老式理发店——5块钱一次的那种"],weather:"亚热带季风气候，夏季闷热多雨，冬季湿冷少雪，春秋短暂"},
+
+"重庆":{province:"重庆",region:"西南",tags:["8D魔幻城市","山城","雾都","火锅之都","江湖码头"],keywords:["江湖气","魔幻","层次感","耿直","烟火气","立体城市"],food:["重庆火锅","重庆小面","酸辣粉","毛血旺","辣子鸡","豆花饭","抄手"],locations:[{name:"白象居老居民楼",type:"老旧居民区",note:"🎯 24层无电梯的老居民楼，多部电影取景地，长江索道穿楼而过的经典机位",risk:"⚠️ 现为网红打卡点，居民对拍摄者态度不一，建议先与楼下大爷聊两句"},{name:"朝天门-来福士-洪崖洞一线",type:"滨江景观",note:"两江交汇处，重庆最具辨识度的天际线",risk:"⚠️ 洪崖洞人流极大，节假日限流；无人机沿江禁飞"},{name:"交通茶馆（黄桷坪）",type:"老茶馆",note:"🎯 川美旁边，重庆保持最完好的老式茶馆，光线暗但有味道",risk:"⚠️ 已成为摄影点，消费一杯茶即可拍摄"}],themes:[{title:"楼梯上的城市：棒棒军的最后背影",desc:"跟拍一位仍在从业的棒棒军（挑夫），记录他们在8D城市里用肩膀讨生活的一天",value:"重庆的山城地貌催生了棒棒这个职业——他们是这座城市垂直交通的血肉，也是正在消失的码头文化活化石"},{title:"防空洞里的重庆：从战争避难所到火锅店",desc:"探访重庆的防空洞改造空间——火锅店、酒窖、书店、停车场",value:"重庆的防空洞是这座城市独特的城市肌理，它们见证了战争、三线建设、再到今天的创意改造"},{title:"十八梯与上半城：一座城市的阶层折叠",desc:"对比拍摄渝中区上半城（解放碑商圈）与下半城（十八梯周边老社区）",value:"重庆的立体不仅仅是物理上的——上半城和下半城之间，隔着一整个社会阶层"}],scriptFocus:0,sunrise:"05:55(夏)/07:45(冬)",sunset:"19:50(夏)/18:00(冬)",bestHours:"06:00-08:30 / 17:00-19:30",easterEggs:["坐长江索道第一班（7:00），在缆车上拍晨雾中的渝中半岛","去黄桷坪涂鸦街凌晨走一遍，白天和夜晚完全不同"],weather:"亚热带季风气候，夏季酷热(火炉)，冬季湿冷多雾，春秋宜人但短暂"},
+
+"南京":{province:"江苏",region:"华东",tags:["六朝古都","梧桐之城","民国记忆","金陵文脉","博爱之都"],keywords:["厚重","沧桑感","烟火气","文艺","梧桐树影","悲情底色"],food:["盐水鸭","鸭血粉丝汤","小笼包","牛肉锅贴","皮肚面","赤豆元宵"],locations:[{name:"颐和路-珞珈路-牯岭路民国公馆区",type:"历史街区",note:"🎯 南京最美梧桐大道，民国公馆建筑群，秋天落叶时绝美",risk:null},{name:"评事街-老门东-小西湖片区",type:"老城区",note:"🎯 评事街是最后的南捕厅老巷区，章云板鸭、李记清真馆都在此",risk:"⚠️ 部分区域正拆迁改造"},{name:"中山陵音乐台",type:"地标建筑",note:"建筑本身极具电影感，鸽子群飞的画面自带文艺滤镜",risk:"⚠️ 人多时鸽子不落地，建议工作日清晨"}],themes:[{title:"梧桐树下：一条颐和路的四季",desc:"以颐和路民国公馆区为舞台，记录一条街道在不同季节的光影与人事",value:"南京的梧桐是这座城市最深的乡愁——因为一个人，种了一城树，这是中国近代史上最浪漫的城市绿化故事"},{title:"鸭子店的清晨：南京人舌尖上的信仰",desc:"跟拍一家老字号鸭子店从凌晨制作到开门营业的全过程",value:"没有一只鸭子能活着游过长江——南京人对鸭子的热爱是这座城市的味觉密码"},{title:"秦淮河畔的无名歌手",desc:"夫子庙秦淮河畔的街头艺人，记录他们的故事与歌声",value:"秦淮河自古以来就是市井与风月交织之地，今天的街头艺人延续着这条河的文化基因"}],scriptFocus:0,sunrise:"05:05(夏)/07:05(冬)",sunset:"19:10(夏)/17:10(冬)",bestHours:"05:30-08:00 / 16:00-18:30",easterEggs:["秋天凌晨5点去明孝陵石象路，无人之境的600年神道","去大桥南路坐一次穿过长江的轮渡，3块钱"],weather:"亚热带季风气候，四季分明，夏热冬冷，梅雨季闷湿，秋季最美"},
+
+"武汉":{province:"湖北",region:"华中",tags:["江城","九省通衢","江湖气","过早之都","大学之城"],keywords:["江湖气","市井","粗犷","烟火气","码头文化","青春感"],food:["热干面","豆皮","鸭脖","武昌鱼","糊汤粉","面窝","排骨藕汤"],locations:[{name:"粮道街-得胜桥-昙华林",type:"老城区+文艺街区",note:"🎯 得胜桥是拍摄黄鹤楼的经典机位，老巷子+现代地标的反差",risk:"⚠️ 得胜桥正在拆迁，尽快去拍"},{name:"汉口江滩-武汉关-黎黄陂路",type:"滨江历史街区",note:"汉口滨江租界区，民国建筑与长江轮渡交相辉映",risk:null},{name:"东湖绿道（磨山-落雁岛段）",type:"湖区景观",note:"中国最大的城中湖，日落时分水面金光粼粼",risk:"⚠️ 周末骑行人数极多"}],themes:[{title:"得胜桥的黄昏：一条即将消失的老街",desc:"记录得胜桥拆迁前的最后日常——老居民、菜摊、和黄鹤楼的剪影",value:"得胜桥是武汉最具烟火气的老街，也是拍摄黄鹤楼的经典机位——但它正在消失"},{title:"过早江湖：武汉人的清晨仪式",desc:"跟拍三家不同类型的过早摊（热干面、豆皮、糊汤粉），从凌晨4点到上午10点",value:"武汉是全球唯一一个全民'过早'的城市——坐在路边塑料凳上吃热干面的武汉人，是这座城市最好的肖像"},{title:"长江两岸：轮渡上的城市折叠",desc:"乘坐武汉轮渡，记录从中华路码头到武汉关码头之间的江上人生",value:"长江穿城而过，轮渡是武汉最便宜的交通方式（1.5元），也是观察这座城市最好的移动机位"}],scriptFocus:0,sunrise:"05:25(夏)/07:15(冬)",sunset:"19:20(夏)/17:30(冬)",bestHours:"05:30-08:00 / 16:30-18:30",easterEggs:["凌晨4点到粮道街赵师傅热干面门口，看一年四季排队的奇观","坐武汉长江大桥下的轮渡，拍到两座大桥夹着日落的画面"],weather:"亚热带季风气候，夏季酷热(火炉)，冬季湿冷，春秋短促，梅雨季长"},
+
+"西安":{province:"陕西",region:"西北",tags:["十三朝古都","碳水之都","丝路起点","长安遗韵","古城墙"],keywords:["厚重","古今交融","市井烟火","西北粗粝","历史纵深","面食江湖"],food:["肉夹馍","羊肉泡馍","凉皮","Biangbiang面","葫芦头","甑糕","岐山臊子面"],locations:[{name:"回民街-洒金桥-大皮院片区",type:"历史街区+美食区",note:"🎯 洒金桥比回民街主街更地道，本地人爱去，拍摄清真美食和市井生活",risk:"⚠️ 回民街主街游客爆满，注意尊重穆斯林习俗"},{name:"城墙根下（顺城巷-文昌门-小南门段）",type:"古城墙+市井",note:"🎯 小南门早市是西安最具烟火气的地方，城墙+早市的组合独一无二",risk:null},{name:"西仓花鸟市场（周四/周日上午）",type:"传统集市",note:"西安最古老的花鸟鱼虫市场，摊贩和老西安人构成独特的市井画面",risk:"⚠️ 只有周四和周日上午开，人挤人"}],themes:[{title:"城墙下的早晨：小南门早市人间观察",desc:"记录小南门早市从凌晨5点到中午12点的完整面貌",value:"西安的城墙是冰冷的历史，但城墙根下的早市是活着的长安——两者之间的张力就是西安的全部"},{title:"最后的回坊手艺人",desc:"在回民街深处寻找仍在手工制作传统食品/工艺品的老手艺人",value:"回民街游客如织，但真正的手艺人藏在支巷深处——他们的技艺可能撑不过下一代"},{title:"从长安到西安：一座城市的时空错位",desc:"将大雁塔/钟楼/城墙的古与高新区的今进行并置对比",value:"西安是全世界最'穿越'的城市——工地挖出唐代遗迹是日常，古今时空的撕裂感独一无二"}],scriptFocus:0,sunrise:"05:40(夏)/07:50(冬)",sunset:"19:55(夏)/17:45(冬)",bestHours:"05:30-08:00 / 17:00-19:30",easterEggs:["去西仓赶一次周四的早市，拍鸟笼子里的老西安","城墙南门洞下晚上总有街头歌手，收音效果意外地好"],weather:"温带季风气候，四季分明，夏热冬冷干燥，春秋短促多风沙"},
+
+"长沙":{province:"湖南",region:"华中",tags:["娱乐之都","星城","辣味江湖","红色记忆","不夜城"],keywords:["烟火气","年轻活力","热辣","夜生活丰富","市井江湖"],food:["臭豆腐","口味虾","糖油粑粑","剁椒鱼头","长沙米粉","刮凉粉","茶颜悦色"],locations:[{name:"太平街-坡子街-文和友",type:"老街区+创意空间",note:"🎯 超级文和友内部复刻老长沙社区，室内光线暗但场景感极强",risk:"⚠️ 文和友用餐才能上楼拍摄；太平街节假日摩肩接踵"},{name:"橘子洲头",type:"滨江公园",note:"毛泽东青年雕像+湘江日落，长沙最具辨识度的画面",risk:"⚠️ 周末人极多，且夏季暴晒"},{name:"冬瓜山-裕南街夜宵一条街",type:"夜宵街区",note:"🎯 长沙真正的夜生活不在酒吧街，在凌晨的夜宵摊",risk:null}],themes:[{title:"凌晨两点的长沙：一座不睡觉的城市",desc:"从晚上10点到凌晨4点，记录冬瓜山、渔人码头等夜宵区的夜间生态",value:"长沙是全国最晚睡的城市之一——理解长沙，要从它的夜晚开始"},{title:"辣度人生：一碗米粉里的湖南性格",desc:"跟拍三家不同类型的米粉店，从清晨到收摊",value:"湖南人'吃得苦，霸得蛮'的性格，在一碗粉的辣度里就能尝出来"},{title:"老长沙的最后影像：潮宗街改造前后",desc:"记录潮宗街、西园北里等老街区改造前的最后日常",value:"长沙的城市更新速度惊人，很多老街在一年内就彻底变了模样"}],scriptFocus:0,sunrise:"05:35(夏)/07:15(冬)",sunset:"19:20(夏)/17:40(冬)",bestHours:"05:30-08:00 / 17:00-19:00",easterEggs:["凌晨去橘子洲大桥下面，拍湘江上的晨雾和钓鱼人","去湖南大学老校区，在岳麓书院未开门前感受千年学府的安静"],weather:"亚热带季风气候，夏季酷热漫长，冬季湿冷，春秋短暂宜人"},
+
+"郑州":{province:"河南",region:"华中",tags:["商都","火车拉来的城市","中原腹地","面食江湖","二七记忆"],keywords:["厚重朴实","中原气质","烟火气","交通枢纽","面食之都"],food:["烩面","胡辣汤","焖饼","黄河大鲤鱼","炒凉粉","水煎包"],locations:[{name:"二七塔及德化步行街周边",type:"城市地标+商业区",note:"郑州最有辨识度的城市地标，周边老城区的市井生活是拍摄重点",risk:"⚠️ 二七广场人流极大"},{name:"国棉三厂/四厂生活区",type:"老工业社区",note:"🎯 郑州纺织工业的记忆，苏式老建筑+社区生活，极具年代感",risk:"⚠️ 部分区域已开始拆迁改造"},{name:"黄河花园口",type:"自然景观",note:"黄河流经郑州，花园口是最近距离感受黄河的最佳地点",risk:"⚠️ 远离河岸，注意安全"}],themes:[{title:"纺织城的晨与昏：郑州工业记忆的最后画面",desc:"记录国棉厂老社区的生活日常，从退休老工人的清晨锻炼到傍晚的棋牌局",value:"郑州曾是中国纺织工业重镇，那些苏式建筑和老工人社区承载着一代人的集体记忆"},{title:"胡辣汤江湖：一碗汤里的中原早晨",desc:"跟拍三家不同类型胡辣汤店的清晨营业，从方中山到逍遥镇",value:"河南人的一天从胡辣汤开始——这碗汤里有整个中原的味觉密码"},{title:"火车经过的城市：郑州站24小时",desc:"以郑州火车站为圆心，记录24小时内不同时段的人来人往",value:"郑州是一座被火车拉来的城市，火车站就是这座城市的命脉"}],scriptFocus:0,sunrise:"05:20(夏)/07:30(冬)",sunset:"19:35(夏)/17:25(冬)",bestHours:"05:30-08:00 / 16:30-18:30",easterEggs:["凌晨4点去方中山胡辣汤总店，看第一锅汤出锅","坐一次黄河游览区的气垫船（如果有的话），从河心拍两岸"],weather:"温带季风气候，四季分明，夏热冬冷干燥，春季多风沙"},
+
+"青岛":{province:"山东",region:"华东",tags:["啤酒之都","帆船之都","红瓦绿树","德式建筑","海滨山城"],keywords:["浪漫","惬意","海洋气息","异域风情","啤酒文化"],food:["青岛啤酒","辣炒蛤蜊","鲅鱼水饺","海菜凉粉","烤海鲜","排骨米饭"],locations:[{name:"八大关-第二海水浴场-太平角",type:"历史建筑群+海滨",note:"🎯 德式/丹麦式/俄式建筑群，四季皆可拍，秋天落叶和春天花开时最美",risk:"⚠️ 八大关某些区域是军事管理区，注意标识"},{name:"台东步行街及周边啤酒屋一条街",type:"市井夜生活区",note:"青岛最有烟火气的地方——塑料袋打啤酒+海鲜烧烤+夜市",risk:null},{name:"栈桥-天主教堂-黄岛路市场",type:"老城区",note:"青岛最具辨识度的地标组合，从德式教堂到海鲜市场只有500米",risk:"⚠️ 栈桥风大浪急时注意安全"}],themes:[{title:"塑料袋里的青岛：啤酒屋深夜人间观察",desc:"跟拍台东一家啤酒屋从下午开门到凌晨打烊的完整一夜",value:"用塑料袋打散啤是青岛独有的城市文化——那些微醺的对话和深夜的烟火，是这座城市最真实的底色"},{title:"八大关的守门人",desc:"拍摄八大关别墅区里的老住户（很多是当年德国人留下的管家后代）",value:"八大关不止是婚纱照背景——那些百年老房子里住着的人，才是活的历史"},{title:"码头清晨：青岛的海洋供应链",desc:"凌晨到沙子口或南姜码头，拍摄渔船回港、海鲜上岸、批发交易的全过程",value:"青岛是一座被大海喂养的城市——了解她，要从凌晨码头的鱼腥味开始"}],scriptFocus:0,sunrise:"04:45(夏)/07:05(冬)",sunset:"19:15(夏)/16:50(冬)",bestHours:"04:30-07:30 / 16:00-18:30",easterEggs:["去小鱼山顶看一次日出，整个老城区的红瓦绿树尽收眼底","找一家能用塑料袋打散啤的老啤酒屋，拍打酒的过程——那是青岛独一份的画面"],weather:"温带季风气候，海洋性明显，夏季凉爽宜人，冬季湿冷风大"},
+
+"大连":{province:"辽宁",region:"东北",tags:["浪漫之都","北方明珠","广场之城","海港城","日俄遗风"],keywords:["浪漫","开阔","海洋气息","洋气","广场文化","海港气质"],food:["海鲜烧烤","海胆饺子","焖子","铁板鱿鱼","海凉粉","鲅鱼饼子"],locations:[{name:"中山广场-俄罗斯风情街-天津街",type:"历史建筑群",note:"🎯 中山广场周围一圈日俄时期老建筑，放射状街道全国罕见",risk:null},{name:"星海广场-星海湾大桥",type:"城市广场+海滨",note:"亚洲最大城市广场，跨海大桥的线条在城市天际线中极具画面感",risk:"⚠️ 无人机禁飞，广场风大"},{name:"旅顺太阳沟-军港周边",type:"历史街区",note:"🎯 旅顺是中国近代史的浓缩地，太阳沟的落叶和日俄老建筑极有味道",risk:"⚠️ 军港区域严禁拍摄，注意禁区标识"}],themes:[{title:"广场上的大连：一座城市的公共客厅",desc:"拍摄大连人周末在星海广场/中山广场上的活动——轮滑、放风筝、广场舞、喂鸽子",value:"大连是中国广场最多的城市——广场对于大连人来说，就是自家的客厅"},{title:"旅顺口：时间胶囊里的中国近代史",desc:"跟拍旅顺太阳沟一个普通周末，从日俄监狱旧址到老街区",value:"旅顺是半部中国近代史的缩影——那些日俄建筑和军港，承载着中国人最沉痛的记忆"},{title:"有轨电车的城市：201路沿线的日常",desc:"乘坐大连201路老式有轨电车，记录沿线从繁华到市井的过渡",value:"大连的有轨电车跑了100多年，它是这座城市唯一的'活文物'"}],scriptFocus:0,sunrise:"04:35(夏)/07:05(冬)",sunset:"19:20(夏)/16:40(冬)",bestHours:"04:30-07:30 / 16:00-18:30",easterEggs:["凌晨4点半去黑石礁等日出，礁石和海平面的组合是大连独有","坐一次大连到旅顺的慢火车（绿皮），沿途的辽东半岛田野很美"],weather:"温带季风气候，海洋性明显，夏凉冬冷，四季分明，冬季风大"},
+
+"厦门":{province:"福建",region:"华东",tags:["海上花园","文艺之都","鼓浪屿","闽南风情","咖啡之城"],keywords:["小资","文艺","闽南韵味","海岛悠闲","中西交融"],food:["沙茶面","海蛎煎","土笋冻","姜母鸭","烧肉粽","花生汤","面线糊"],locations:[{name:"八市（第八菜市场）",type:"老市场",note:"🎯 厦门最有烟火气的地方，闽南食材+骑楼老街+叫卖声",risk:"⚠️ 市场内湿滑拥挤，注意设备和脚下"},{name:"沙坡尾-顶澳仔猫街-大学路",type:"文艺街区",note:"老渔港+文创街区，新旧交融，傍晚光线极佳",risk:null},{name:"鼓浪屿内厝澳路-鸡山路-笔山路",type:"岛屿老社区",note:"游客不去的小路，老别墅和原住民的生活才是真正的鼓浪屿",risk:"⚠️ 核心景点区域禁止无人机"}],themes:[{title:"八市江湖：厦门最生猛的一面",desc:"从凌晨4点海鲜上岸到傍晚收摊，记录厦门最大菜市场的一天",value:"游客眼中的厦门是文艺和浪漫——但八市的生猛海鲜和市井叫卖，才是这座城市最真实的底色"},{title:"鼓浪屿的另一面：游客散尽之后",desc:"乘坐最后一班轮渡上岛，拍摄游客离开后的鼓浪屿——安静的老别墅和在岛上生活了一辈子的老人",value:"鼓浪屿每天接待数万游客，但夜的岛上只有不到一万居民——这才是真正的鼓浪屿"},{title:"闽南古厝的最后守望者",desc:"到翔安/同安/集美寻找仍在居住的传统闽南红砖古厝",value:"闽南古厝是福建最具辨识度的建筑文化遗产，但正在快速消失"}],scriptFocus:0,sunrise:"05:25(夏)/06:50(冬)",sunset:"18:55(夏)/17:25(冬)",bestHours:"05:00-07:30 / 16:30-18:30",easterEggs:["坐早晨第一班轮渡（5:45）去鼓浪屿，在船上看太阳从日光岩后面升起来","去集美学村龙舟池，傍晚时分嘉庚建筑倒影绝美"],weather:"亚热带海洋性气候，四季温暖，夏季湿热多台风雨，冬季温和"},
+
+"苏州":{province:"江苏",region:"华东",tags:["园林之城","江南水乡","东方威尼斯","丝绸之府","苏式生活"],keywords:["温婉","精致","江南韵味","慢生活","园林美学","水巷小桥"],food:["松鼠鳜鱼","阳澄湖大闸蟹","苏式汤面","生煎包","糖粥","鸡头米","碧螺春"],locations:[{name:"平江路-悬桥巷-大儒巷-中张家巷",type:"水巷历史街区",note:"🎯 平江路是苏州保存最完好的水巷，但主街游客多，深入支巷才是真江南",risk:"⚠️ 平江路主街人山人海，清晨6点前才清净"},{name:"葑门横街",type:"菜市场街",note:"苏州最有烟火气的菜场一条街，买菜的苏州阿姨和水乡时令食材",risk:"⚠️ 早上7-9点最热闹也最挤"},{name:"山塘街（新民桥到虎丘段）",type:"水乡老街",note:"🎯 后半段未过度商业化，原住民仍在河边洗衣淘米",risk:null}],themes:[{title:"平江路晨间六点半：游客苏醒前的真江南",desc:"拍摄平江路从清晨6点到上午10点的面貌变迁",value:"大多数游客看到的平江路是拥挤和商业化的——但清晨6点半的平江路，只有河边洗衣服的老人和生煤炉的阿姨，那才是真江南"},{title:"葑门横街的一日四季",desc:"记录葑门横街的四季时令变化——春天的蚕豆、夏天的鸡头米、秋天的大闸蟹、冬天的冬酿酒",value:"苏州人的时间不是按钟表走的——是按菜场里出现的时令食材走的"},{title:"最后的摇橹人：京杭大运河上的苏州船民",desc:"寻找仍住在船上、以跑船为生的苏州船民家庭",value:"苏州是水做的城市，但真正以船为家的人已经不多了——这是正在消亡的江南生活方式"}],scriptFocus:0,sunrise:"05:00(夏)/06:55(冬)",sunset:"19:00(夏)/17:05(冬)",bestHours:"05:30-07:30 / 16:00-18:30",easterEggs:["秋天凌晨去定慧寺，看满地银杏无人踩过","坐一次从苏州到杭州的夜航船（如果有的话）——参考《苏州河》开头"],weather:"亚热带季风气候，四季分明，梅雨季长，夏季湿热，春秋宜人短暂"},
+
+"宁波":{province:"浙江",region:"华东",tags:["港通天下","书藏古今","海鲜之都","甬商故里","江南水乡"],keywords:["务实","低调","海港气质","江南底蕴","甬式生活"],food:["宁波汤圆","红膏呛蟹","雪菜大黄鱼","慈城年糕","海鲜面","油赞子"],locations:[{name:"南塘老街-鼓楼-月湖公园",type:"老城区",note:"月湖周边老社区保留了大量宁波传统民居，生活气息浓厚",risk:null},{name:"老外滩-宁波美术馆-江北天主教堂",type:"滨江历史区",note:"🎯 比上海外滩更早开埠，老建筑+甬江+现代城市的层次感",risk:"⚠️ 老外滩夜间酒吧多，白天拍摄最佳"},{name:"石浦渔港（象山）",type:"渔港",note:"🎯 中国四大渔港之一，凌晨渔船回港的场景极具画面感",risk:"距市区约2小时车程"}],themes:[{title:"甬江边的码头记忆：老外滩的前世今生",desc:"对比拍摄老外滩历史建筑与对岸的现代CBD",value:"宁波是中国最早开埠的口岸之一，老外滩见证了中国从封闭到开放的全过程"},{title:"汤圆店的365天：宁波人的甜与咸",desc:"跟拍一家老字号汤圆店（如缸鸭狗）的日常",value:"宁波汤圆是全国最有名的——但宁波人口味的丰富远不止汤圆，一碗猪油馅的黑芝麻汤圆里有整个宁波的味觉记忆"},{title:"石浦凌晨：中国渔港的脉搏",desc:"去象山石浦渔港，拍摄凌晨渔船回港、批发交易的全过程",value:"宁波靠海吃海，石浦是中国东部最重要的渔港之一——这里的凌晨，决定了今天半个华东餐桌上的海鲜"}],scriptFocus:0,sunrise:"05:00(夏)/06:50(冬)",sunset:"18:55(夏)/17:05(冬)",bestHours:"05:00-07:30 / 16:30-18:30",easterEggs:["去天一阁等开门，做第一个走进亚洲最古老图书馆的人","坐轮渡从白峰到舟山鸭蛋山，在海上看宁波港的巨大货轮"],weather:"亚热带季风气候，四季分明，夏季湿热多台风，冬季湿冷"},
+
+"昆明":{province:"云南",region:"西南",tags:["春城","高原明珠","花都","民族文化","慢生活天堂"],keywords:["慵懒","阳光充沛","多元民族","花卉","高原闲适"],food:["过桥米线","汽锅鸡","野生菌","烧饵块","豆花米线","鲜花饼","烤乳扇"],locations:[{name:"翠湖公园-云南大学-文林街",type:"城市公园+学府区",note:"🎯 翠湖冬天有红嘴鸥，夏天有荷花，周边文林街咖啡+书店+老社区",risk:null},{name:"篆新农贸市场",type:"菜市场",note:"云南食材的百科全书——各种你叫不出名字的菌子、野菜、昆虫",risk:"⚠️ 市场内极其拥挤，早上去最好"},{name:"斗南花卉市场",type:"花卉交易市场",note:"🎯 亚洲最大鲜花交易市场，晚上8点后拍卖开始，画面极具电影感",risk:"⚠️ 夜间拍摄，场内灯光复杂"}],themes:[{title:"篆新菜市场：云南生物多样性的民间展馆",desc:"跟拍篆新菜市场从清晨到中午的完整面貌",value:"昆明的菜市场是全中国最好看的——因为云南是中国生物多样性最丰富的省份，那些你叫不出名字的花、菌子、野菜、昆虫，就是云南的灵魂"},{title:"红嘴鸥来的时候：翠湖公园的人鸟共处",desc:"每年11月-3月红嘴鸥从西伯利亚飞到昆明过冬，记录翠湖边喂鸥的老人和游客",value:"红嘴鸥是昆明的城市符号——一群野生候鸟选择了一座城市，这是人与自然最浪漫的关系"},{title:"斗南花市的午夜玫瑰",desc:"晚上8点到凌晨，拍摄斗南花卉市场的拍卖交易和鲜花分拣线",value:"你收到的每一束花，大概率都是昨晚从斗南出发的——但没有人拍过这些花在出发前的样子"}],scriptFocus:0,sunrise:"06:25(夏)/07:55(冬)",sunset:"19:55(夏)/18:25(冬)",bestHours:"06:00-08:30 / 17:00-19:30",easterEggs:["冬天去翠湖拍红嘴鸥，但最好带一块面包——你举着不动，鸥就站在你手上","去斗南花市晚上8点，看花拍卖——那场景比任何电影都魔幻"],weather:"低纬高原季风气候，四季如春(年均温15℃)，干湿季分明，紫外线强"},
+
+"丽江":{province:"云南",region:"西南",tags:["世界文化遗产","纳西古都","艳遇之都","玉龙雪山","茶马古道"],keywords:["文艺","慢时光","纳西文化","雪山古城","小桥流水","客栈情怀"],food:["腊排骨火锅","鸡豆凉粉","纳西烤鱼","丽江粑粑","米灌肠","三文鱼"],locations:[{name:"大研古城四方街-五一街-七一街",type:"古城街区",note:"🎯 四方街周边支巷清晨6点前完全无人，石板路+流水+纳西老建筑",risk:"⚠️ 9点后游客大军到，完全无法拍摄"},{name:"白沙古镇",type:"古村落",note:"比大研古城更原生态，纳西族原住民仍在正常生活，玉龙雪山作为背景",risk:"🎯 距市区约30分钟"},{name:"玉湖村（雪嵩村）",type:"纳西古村",note:"玉龙雪山脚下最原始的纳西村落，石头房子+雪山背景",risk:"海拔较高，注意高反"}],themes:[{title:"游客散尽后的丽江古城",desc:"凌晨5点开始，拍摄丽江古城从沉睡到被游客淹没的全过程",value:"丽江被过度商业化是事实——但凌晨5点的古城，石板路上只有流水声和纳西族老人扫地的声音，那才是真正的丽江"},{title:"白沙古镇：一个拒绝商业化的纳西样本",desc:"拍摄白沙古镇纳西族居民的日常生活——扎染、铜器制作、晒太阳的老东巴",value:"当大研古城被游客占据，白沙是纳西文化最后的自留地"},{title:"雪山下的村庄：玉湖村的一天",desc:"跟拍玉湖村一户纳西族家庭从日出到日落",value:"玉龙雪山是背景，但生活在雪山脚下的纳西人才是主角——他们的日子和100年前没有太大区别"}],scriptFocus:0,sunrise:"06:30(夏)/08:05(冬)",sunset:"20:10(夏)/18:30(冬)",bestHours:"06:00-08:30 / 17:00-19:30",easterEggs:["凌晨5点到大水车，一个人走在空无一人的古城石板路上","去白沙古镇找约瑟夫·洛克的故居，一个美国人把一生献给了纳西文化"],weather:"高原季风气候，四季温差小，干湿季分明，紫外线强，昼夜温差大"},
+
+"大理":{province:"云南",region:"西南",tags:["风花雪月","白族之乡","苍山洱海","文艺乌托邦","慢生活圣地"],keywords:["诗意","自由","白族文化","苍山洱海","田园牧歌","逃离北上广"],food:["酸辣鱼","乳扇","喜洲粑粑","大理生皮","砂锅鱼","雕梅","三道茶"],locations:[{name:"洱海生态廊道（才村-龙龛-磻溪S弯段）",type:"滨湖景观带",note:"🎯 磻溪S弯是洱海最上镜的弯道，但人多，建议往南走2公里到无人的弯道",risk:"⚠️ 生态廊道机动车禁入，只能步行或骑行"},{name:"喜洲古镇",type:"白族古镇",note:"白族民居建筑群保存最完好的古镇，转角楼和稻田绝配",risk:"⚠️ 稻田收割后（10月后）景观大打折扣"},{name:"大理古城人民路-广武路-叶榆路",type:"古城街区",note:"大理最文艺的街区，摆摊的、卖唱的、晒太阳的构成独特风景",risk:null}],themes:[{title:"洱海边的24节气",desc:"沿洱海生态廊道拍摄不同时段的洱海——晨雾、日出、午后、日落、星空",value:"洱海不是海，但大理人把它当海一样爱——这条46公里的生态廊道是大理人写给洱海的情书"},{title:"喜洲稻田里的白族民居",desc:"拍摄喜洲古镇白族三坊一照壁的建筑美学和稻田里的农耕生活",value:"喜洲是白族建筑文化的高峰——那些精美的照壁和飞檐，是白族人把家当成艺术品来建造的证明"},{title:"大理新移民：逃离北上广之后",desc:"拍摄在大理定居的外地人——开民宿的、做手工艺的、搞音乐的",value:"大理是中国最著名的'逃离目的地'——这些新移民的故事，折射出当代中国年轻人的价值观变迁"}],scriptFocus:0,sunrise:"06:35(夏)/08:00(冬)",sunset:"20:05(夏)/18:30(冬)",bestHours:"06:00-09:00 / 17:00-20:00",easterEggs:["去龙龛码头看日出——太阳从洱海东岸的山后探出来，整个湖面变成金色","骑电动车从大理古城到喜洲，走环海西路，看到好看的稻田就停下来"],weather:"高原季风气候，四季如春，干湿季分明，紫外线强，下关风大"},
+
+"拉萨":{province:"西藏",region:"西南",tags:["日光之城","世界屋脊","藏传佛教圣地","高原净土","朝圣之路"],keywords:["神圣","纯净","信仰","高原","藏文化","慢节奏"],food:["甜茶","藏面","酥油茶","牦牛肉","糌粑","青稞酒","藏式酸奶"],locations:[{name:"八廓街及大昭寺周边",type:"宗教街区",note:"🎯 顺时针转经的人群是大昭寺最具画面感的场景",risk:"⚠️ 拍摄朝圣者务必先征得同意，勿正面近距离拍摄磕长头"},{name:"布达拉宫广场及药王山观景台",type:"地标建筑",note:"50元人民币背面同款角度，日出和夜景皆可",risk:"⚠️ 广场安检严格，三脚架可能会被盘问"},{name:"色拉寺辩经场",type:"寺院",note:"每周一至周六下午3点僧侣辩经，肢体动作极具张力",risk:"⚠️ 只能手机拍摄，禁止相机和闪光灯"}],themes:[{title:"八廓街的转经人",desc:"跟随一位每天来八廓街转经的藏族老人，记录信仰融入日常的样子",value:"对于藏族同胞来说，转经不是仪式，是生活——就像我们每天散步一样自然"},{title:"甜茶馆里的拉萨",desc:"在光明港琼甜茶馆或老字号甜茶馆拍摄一天",value:"拉萨的甜茶馆就是成都的茶馆、广州的茶楼——这里是拉萨的社会缩影，比任何景点都真实"},{title:"拉萨河的黄昏：一座圣城的日常B面",desc:"拍摄拉萨河边的市民生活——钓鱼、野炊、放风筝",value:"布达拉宫代表了拉萨的A面（信仰），拉萨河代表了拉萨的B面（生活）——两者一样重要"}],scriptFocus:0,sunrise:"07:00(夏)/08:50(冬)",sunset:"20:55(夏)/18:10(冬)",bestHours:"06:30-09:00 / 17:30-20:30",easterEggs:["去药王山拍第一缕阳光照在布达拉宫上——50元人民币的角度","在八廓街找一家楼顶甜茶馆，从天台拍布达拉宫和大昭寺金顶同框"],weather:"高原气候，日照时间长，昼夜温差大（一日四季），紫外线极强，冬季干燥寒冷"},
+
+"乌鲁木齐":{province:"新疆",region:"西北",tags:["亚心之都","西域门户","多民族交汇","天山脚下","瓜果之乡"],keywords:["异域风情","多元文化","豪爽","天山","巴扎文化","西域美食"],food:["大盘鸡","羊肉串","抓饭","拌面(拉条子)","烤包子","馕","手抓肉","酸奶"],locations:[{name:"国际大巴扎",type:"民族市场",note:"🎯 世界最大的巴扎，伊斯兰建筑+民族手工艺+干果香料，色彩和光影极丰富",risk:"⚠️ 拍摄摊主和顾客需先微笑打招呼"},{name:"红山公园-红山塔",type:"城市地标",note:"俯瞰乌鲁木齐全城+博格达峰雪山背景的经典机位",risk:null},{name:"南湖东路-南湖广场周边",type:"城市生活区",note:"乌鲁木齐的市民生活——广场舞、夜市、烧烤摊，维汉文化交融的日常",risk:null}],themes:[{title:"大巴扎的香料人生",desc:"跟拍国际大巴扎里一位香料摊主的一天",value:"丝绸之路走了几千年，大巴扎里的香料味和叫卖声是它最后的回响"},{title:"天还没亮的面包香：乌鲁木齐的馕房清晨",desc:"凌晨跟拍一家传统馕房从和面到第一炉馕出炉",value:"在新疆，馕是生命——一个馕房凌晨4点开始工作，养活着方圆几公里的人"},{title:"天山南北：一座城市的两种性格",desc:"对比拍摄乌鲁木齐老城区（南门/二道桥）与新城区的差异",value:"乌鲁木齐是新疆的缩影——传统与现代、民族与世界在这里交汇碰撞"}],scriptFocus:0,sunrise:"06:40(夏)/09:40(冬)",sunset:"21:50(夏)/18:40(冬)",bestHours:"06:00-09:00 / 19:00-21:30",easterEggs:["夏天晚上10点天才黑——去红山公园拍一场10点钟的日落","去领馆巷找一家开了30年以上的拌面馆，拍拉条子的过程——那是一场面粉的舞蹈"],weather:"温带大陆性气候，昼夜温差大，夏季炎热干燥，冬季寒冷漫长，春秋短促"},
+
+"哈尔滨":{province:"黑龙江",region:"东北",tags:["冰城","东方莫斯科","音乐之都","冰雪王国","远东风情"],keywords:["俄式风情","冰雪美学","洋气","豪爽","音乐底蕴","寒冷中的温暖"],food:["锅包肉","红肠","大列巴","杀猪菜","铁锅炖","马迭尔冰棍","格瓦斯"],locations:[{name:"中央大街-圣索菲亚教堂-老道外",type:"历史街区",note:"🎯 中央大街的面包石路面+欧式建筑群，中国最像欧洲的街道",risk:"⚠️ 冬天极寒(-30℃)，手机电池快速耗尽，需贴暖宝宝"},{name:"哈尔滨大剧院及周边湿地",type:"现代建筑+自然",note:"建筑本身极具未来感，冬季被雪覆盖时更是科幻电影画面",risk:"⚠️ 冬季户外拍摄注意设备和人身安全"},{name:"松花江防洪纪念塔段",type:"滨江景观",note:"冬季江面结冰成为天然冰场，市民滑冰、冰钓、坐狗拉爬犁",risk:"⚠️ 冰面上行走注意安全，勿靠近未冻结区域"}],themes:[{title:"零下三十度的中央大街：冰城守夜人",desc:"冬季凌晨拍摄中央大街——扫雪工人、外卖骑手、凌晨下班的酒吧服务员",value:"游客拍冰雪大世界——但真正生活在哈尔滨的人在零下三十度的凌晨就已开始工作，他们的故事比冰雕更有温度"},{title:"老道外：哈尔滨最后的巴洛克",desc:"拍摄老道外中华巴洛克建筑群里的居民生活",value:"老道外是哈尔滨最有味道的老城区——中西合璧的巴洛克建筑+东北市井生活，但这种街区正在拆迁"},{title:"索菲亚教堂的钟声：哈尔滨的俄罗斯记忆",desc:"拍摄圣索菲亚教堂及周边的俄侨后裔生活",value:"哈尔滨曾是远东最大的俄侨城市——虽然大多数俄侨已离开，但他们的建筑、食物、音乐渗透进了这座城市的DNA"}],scriptFocus:0,sunrise:"03:50(夏)/07:10(冬)",sunset:"19:25(夏)/15:55(冬)",bestHours:"04:00-07:00 / 16:00-19:00(夏);07:00-10:00 / 14:00-16:00(冬)",easterEggs:["冬天去松花江上看冰钓——在冰面上凿一个洞，一坐就是一天","去中央大街买一根马迭尔冰棍，零下三十度吃冰棍是哈尔滨特色"],weather:"中温带大陆性季风气候，冬季漫长严寒（冰城），夏季短暂凉爽，春秋短"},
+
+"长春":{province:"吉林",region:"东北",tags:["汽车城","电影城","森林城","中国底特律","伪满记忆"],keywords:["工业感","年代感","质朴","汽车文化","电影底蕴","东北老工业"],food:["酱骨头","朝鲜冷面","鸡汤豆腐串","雪衣豆沙","熏肉大饼","锅包肉"],locations:[{name:"长春电影制片厂旧址-长影博物馆",type:"历史工业建筑",note:"🎯 新中国电影摇篮，老厂房+电影元素+周边老社区，工业复古风",risk:"⚠️ 博物馆内部拍摄需购票，部分区域禁拍"},{name:"伪满皇宫博物院及周边",type:"历史建筑群",note:"末代皇帝溥仪的傀儡皇宫，中日建筑风格的奇特混合",risk:"⚠️ 内部部分展厅禁止拍摄"},{name:"南湖公园-新民大街",type:"城市公园+历史街道",note:"长春最具生活气息的城市公园，冬天冰面上的人群是东北独有的画面",risk:null}],themes:[{title:"长影旧址：新中国电影的诞生地",desc:"拍摄长影老厂区及周边老电影人的生活社区",value:"这里是中国电影开始的地方——《白毛女》《上甘岭》《英雄儿女》都在此诞生，但这些老厂房和老人正在被遗忘"},{title:"南湖公园的冰上人生",desc:"冬季拍摄南湖公园冰面上的人群——滑冰、冰球、冰车、冬泳",value:"东北人的冬天不是在室内度过的——南湖冰面上的日常生活，就是东北精神的最好写照"},{title:"一汽的老工人村",desc:"拍摄一汽老厂区周边工人村的退休汽车工人",value:"长春是中国汽车工业的摇篮——那些造了半辈子解放牌卡车的老工人，是共和国工业记忆的活化石"}],scriptFocus:0,sunrise:"04:05(夏)/07:10(冬)",sunset:"19:20(夏)/16:05(冬)",bestHours:"04:30-07:30(夏);07:00-10:00 / 14:00-16:00(冬)",easterEggs:["去长影看一场老电影放映——不是数字的，是胶片的","冬天去南湖看冬泳大爷——零下二十度跳进冰水里，东北人的生命力"],weather:"中温带大陆性季风气候，冬季漫长严寒，夏季短暂凉爽，春秋短，干燥"},
+
+"沈阳":{province:"辽宁",region:"东北",tags:["盛京","共和国长子","工业记忆","满清故里","东北中心"],keywords:["厚重","工业感","豪爽","盛京遗韵","市井烟火","老工业基地"],food:["老边饺子","熏肉大饼","马家烧卖","鸡架","冷面","锅包肉","白肉血肠"],locations:[{name:"沈阳故宫-中街-大帅府沿线",type:"历史建筑群",note:"沈阳故宫比北京故宫更小巧，但满族特色更鲜明",risk:"⚠️ 故宫内部分区域禁止商业拍摄"},{name:"铁西区工人村-中国工业博物馆",type:"老工业城区",note:"🎯 沈阳工业记忆最集中的区域，苏式工人村+老厂房",risk:"⚠️ 部分区域已拆迁改造"},{name:"西塔朝鲜族风情街",type:"民族特色街区",note:"中国最大的朝鲜族聚居区之一，韩式建筑+朝鲜族美食+双语招牌",risk:null}],themes:[{title:"铁西区往事：共和国长子的工业乡愁",desc:"拍摄铁西区老工人村和退役老工人的日常生活",value:"沈阳铁西区曾是亚洲最大的工业区——今天，那些巨大的厂房沉默地站立着，像一座工业文明的墓碑"},{title:"沈阳人的鸡架哲学",desc:"跟拍深夜鸡架店——沈阳人吃鸡架不是为了肉，是为了那个'嗦啰'的过程",value:"沈阳是全国最大的鸡架消费城市——一碟鸡架、一瓶老雪、一桌唠嗑，这就是沈阳人的深夜仪式"},{title:"盛京与沈阳：一座城市的双重身份",desc:"对比拍摄沈阳故宫/昭陵的满清遗韵与铁西区/中街的现代市井",value:"沈阳做过清朝的首都（盛京），也做过新中国的工业长子——两重身份让这座城市有一种独特的时间错位感"}],scriptFocus:0,sunrise:"04:20(夏)/07:10(冬)",sunset:"19:20(夏)/16:20(冬)",bestHours:"04:30-07:30(夏);07:00-10:00 / 14:00-16:30(冬)",easterEggs:["去找一家开了20年以上的鸡架小店——晚上10点以后去，那时候人才多起来","去铁西区中国工业博物馆，看那些比篮球场还大的机床"],weather:"温带季风气候，四季分明，冬季漫长严寒，夏季炎热多雨，春秋短"},
+
+"济南":{province:"山东",region:"华东",tags:["泉城","四面荷花三面柳","齐鲁文化","泉水人家","一城山色半城湖"],keywords:["温润","泉水灵气","市井烟火","齐鲁厚重","泉水文化"],food:["油旋","甜沫","把子肉","九转大肠","糖醋鲤鱼","煎饼卷大葱","泉水豆腐"],locations:[{name:"大明湖-曲水亭街-百花洲",type:"泉水老城区",note:"🎯 曲水亭街是济南最具泉水特色的老街，小桥流水人家+泉水茶社",risk:"⚠️ 节假日大明湖人山人海"},{name:"趵突泉-五龙潭-黑虎泉",type:"泉水公园",note:"济南三大名泉，黑虎泉边的市民打水场景最具生活气息",risk:null},{name:"千佛山",type:"城市山景",note:"登顶可俯瞰济南全城+黄河，日出日落时城市天际线极美",risk:"⚠️ 登山台阶多，带设备注意安全"}],themes:[{title:"泉水边的济南：打水人的清晨",desc:"清晨到黑虎泉/王府池子，拍摄济南市民打泉水的日常",value:"济南是全世界独一无二的泉城——泉水对济南人来说不是景点，是自来水，是泡茶的底气，是夏天的冰箱"},{title:"曲水亭街的一天：老济南的泉水生活",desc:"从清晨流水声到傍晚老人下棋，记录曲水亭街的慢生活",value:"曲水亭街不是江南，是济南——那水是从地下冒出来的泉水，不是河，是这座城市的血脉"},{title:"把子肉江湖：济南人的深夜食堂",desc:"跟拍几家老字号把子肉店的深夜生意",value:"把子肉是济南第一平民美食——一碗米饭、一块肥而不腻的把子肉、浇一勺汤，这就是济南人的深夜碳水信仰"}],scriptFocus:0,sunrise:"05:00(夏)/07:20(冬)",sunset:"19:30(夏)/17:05(冬)",bestHours:"05:00-08:00 / 16:30-19:00",easterEggs:["清晨6点去黑虎泉，看大爷们用大桶打水——那场景比任何演出都好看","去芙蓉街不是吃饭——是钻到支巷里找那些还住着人的泉水四合院"],weather:"温带季风气候，四季分明，夏季炎热多雨（火炉），冬季干冷，春秋宜人"},
+
+"合肥":{province:"安徽",region:"华东",tags:["江淮之间","科教之城","包公故里","霸都","大湖名城"],keywords:["质朴","务实","江淮风情","科技新锐","市井烟火"],food:["庐州烤鸭","肥西老母鸡汤","包公鱼","吴山贡鹅","曹操鸡","三河米饺","下塘集烧饼"],locations:[{name:"淮河路步行街-李鸿章故居-逍遥津",type:"老城区",note:"合肥老城核心，逍遥津公园里市民生活气息浓厚",risk:"⚠️ 淮河路步行街节假日人流量极大"},{name:"合柴1972文创园",type:"工业改造区",note:"🎯 由合肥柴油机厂改造的文创园，工业遗址+艺术装置，画面极具质感",risk:null},{name:"巢湖岸边（滨湖湿地公园-中庙）",type:"滨湖景观",note:"中国五大淡水湖之一，日落时湖面金光粼粼",risk:"距市区较远(约30km)"}],themes:[{title:"从庐州到霸都：一座城市的身份焦虑",desc:"对比拍摄合肥老城区（庐州）的慢生活与滨湖新区（霸都）的快节奏",value:"合肥是中国过去20年发展最快的省会——从默默无闻到GDP过万亿，这种剧烈变化在普通市民的生活中留下了怎样的痕迹？"},{title:"合柴1972：一座监狱改建的文创园",desc:"拍摄合柴1972——从合肥柴油机厂到监狱再到文创园的空间叙事",value:"一座监狱变成城市最文艺的地方——这个空间的反转本身就足够精彩"},{title:"巢湖边上的渔村",desc:"到巢湖边尚未开发的渔村拍摄渔民生活",value:"巢湖是合肥的母亲湖——但大多数人只知道合肥是'霸都'，而忘了它是一座大湖之城"}],scriptFocus:0,sunrise:"05:15(夏)/07:10(冬)",sunset:"19:15(夏)/17:15(冬)",bestHours:"05:30-08:00 / 16:30-18:30",easterEggs:["去官亭路小吃街——不是去吃，是去拍合肥凌晨的夜宵江湖","坐一次合肥到芜湖的绿皮火车，拍江淮平原的田野"],weather:"亚热带季风气候，四季分明，梅雨季长，夏季湿热，冬季湿冷"},
+
+"南昌":{province:"江西",region:"华东",tags:["英雄城","赣江之滨","滕王阁","军旗升起的地方","拌粉瓦罐汤之乡"],keywords:["江湖气","市井烟火","赣鄱韵味","红色记忆","慢中有快","水城"],food:["南昌拌粉","瓦罐汤","藜蒿炒腊肉","粉蒸肉","豫章酥鸭","白糖糕","军山湖大闸蟹"],locations:[{name:"万寿宫历史文化街区-珠宝街",type:"老城区+美食街区",note:"🎯 南昌最具烟火气的地方，万寿宫改造后新旧融合，珠宝街是老南昌小吃集中地",risk:"⚠️ 节假日人满为患，建议工作日上午"},{name:"滕王阁-赣江市民公园-秋水广场",type:"赣江滨江景观带",note:"一江两岸天际线，滕王阁+八一大桥+红谷滩CBD同框",risk:"⚠️ 无人机需报备，沿江部分区域禁飞"},{name:"绳金塔美食街及周边老社区",type:"老城区",note:"🎯 周边的老社区保留了大量南昌市井生活——街头理发、修鞋摊、老棋牌室",risk:"⚠️ 部分区域待拆迁，拍摄前确认安全"}],themes:[{title:"拌粉江湖：南昌人的清晨仪式",desc:"从凌晨4点跟拍拌粉店备料到上午10点收摊，记录南昌最生猛的早餐文化",value:"南昌人的一天从一碗拌粉+一罐瓦罐汤开始——3块5的拌粉，是这座城市最平等的食物信仰"},{title:"赣江两岸：一座被低估的水城",desc:"沿着赣江从南到北，拍摄南昌人与水的关系——游泳、钓鱼、散步、放风筝",value:"南昌是全国水域面积最大的省会城市之一——南昌人临水而居的生活方式，是这座城市最被低估的魅力"},{title:"万寿宫的日与夜：南昌城市更新的活样本",desc:"拍摄改造后的万寿宫街区——白天是老南昌人的庙会和市集，晚上是年轻人的打卡地",value:"万寿宫的改造是南昌城市更新最成功的案例——新旧融合而不互相排斥，这才是理想的城市更新"}],scriptFocus:0,sunrise:"05:25(夏)/07:10(冬)",sunset:"19:15(夏)/17:25(冬)",bestHours:"05:00-08:00 / 16:30-18:30",easterEggs:["凌晨5点去大士院街，看拌粉店亮起第一盏灯，整条街飘着香油味","坐一趟南昌到九江的江上轮渡，在赣江中间看江南水乡的日出"],weather:"亚热带季风气候，四季分明，夏季酷热(火炉)，冬季湿冷，春秋宜人"},
+
+"赣州":{province:"江西",region:"华东",tags:["客家摇篮","千年宋城","红色故都","赣江源头","世界钨都"],keywords:["客家风情","古城沧桑","淳朴","红色记忆","赣南韵味","慢生活"],food:["赣南小炒鱼","客家酿豆腐","宁都肉丸","安远三鲜粉","赣州脐橙","客家擂茶","兴国米粉鱼"],locations:[{name:"灶儿巷-南市街-建春门-古浮桥",type:"历史街区",note:"🎯 赣州保存最完整的老城区，宋代古浮桥至今仍在使用，渔民在浮桥上卖鱼干，极具画面感",risk:null},{name:"郁孤台-八境台-古城墙",type:"宋代遗址",note:"辛弃疾'郁孤台下清江水'所在地，古城墙是中国保存最好的宋代城墙之一",risk:"⚠️ 城墙上注意安全，部分路段无护栏"},{name:"瑞金叶坪/沙洲坝革命旧址群",type:"红色遗址",note:"红色故都的核心区域，但少拍建筑多拍来参观的人——普通游客与红色记忆的互动更耐人寻味",risk:"距赣州市区约2小时车程"}],themes:[{title:"古浮桥上的八百年日常",desc:"跟拍建春门古浮桥从清晨到傍晚的一天——渔船靠岸、渔民晒鱼干、市民过桥买菜",value:"赣州的古浮桥建于宋代，800多年过去了，它仍然在使用——每天有上千人从桥上走过，这就是活着的宋代"},{title:"灶儿巷的客家老宅",desc:"拍摄灶儿巷及周边老城区里仍在居住的客家老宅和原住民",value:"赣州是客家文化的摇篮——灶儿巷的每一块青砖都浸泡着客家人在此定居800年的记忆"},{title:"脐橙熟了：赣南秋天的颜色",desc:"秋天到赣南脐橙园拍摄丰收季——满山金黄色的脐橙+采摘的果农",value:"赣州是世界最大的脐橙产区——秋天的赣南，整个大地都是金黄色的"}],scriptFocus:0,sunrise:"05:35(夏)/07:05(冬)",sunset:"19:10(夏)/17:35(冬)",bestHours:"05:30-08:00 / 16:30-18:30",easterEggs:["凌晨4点半去建春门，看浮桥上老渔民点亮第一盏煤油灯","秋天脐橙采摘季节，去信丰或寻乌的橙园——整座山都是橙色的，而且可以边拍边吃"],weather:"亚热带季风气候，四季分明，夏季湿热，冬季温和，脐橙种植区阳光充足"},
+
+"福州":{province:"福建",region:"华东",tags:["榕城","有福之州","三坊七巷","茉莉花茶","海上丝绸之路"],keywords:["温润","内敛","闽都底蕴","榕树下的慢生活","山海之间"],food:["佛跳墙","鱼丸","肉燕","捞化","锅边糊","芋泥","荔枝肉"],locations:[{name:"三坊七巷-朱紫坊-鳌峰坊",type:"历史街区",note:"🎯 中国城市里坊制度的活化石，明清建筑群+原住民仍在生活",risk:"⚠️ 主街南后街商业化严重，真正的味道在两侧坊巷深处"},{name:"上下杭-苍霞-烟台山",type:"老商埠区",note:"福州开埠后的商业中心，民国建筑+闽江+老社区",risk:"⚠️ 部分区域正在改造"},{name:"鼓山-涌泉寺-鼓岭",type:"山景+古寺",note:"福州城市背景山，涌泉寺千年古刹，登顶可观福州全城",risk:null}],themes:[{title:"三坊七巷的深巷人家",desc:"钻进南后街两侧的坊巷（如安民巷、宫巷），拍摄原住民的生活日常",value:"三坊七巷不只是5A景区——那些老宅里还住着人，他们的祖辈可能已经在这里生活了300年"},{title:"茉莉花与茶：福州的香气记忆",desc:"跟拍福州茉莉花茶的窨制工艺——花与茶在深夜的交融",value:"福州的茉莉花茶是全国最好的——但机器窨制正在取代手工，这门手艺可能在我们这一代消失"},{title:"闽江之心：一条江与一座城的共生",desc:"沿闽江拍摄福州人的滨江生活——游泳、钓鱼、广场舞、放风筝",value:"闽江是福州的母亲河——但这些年因为城市发展，福州人与闽江的关系正在疏远"}],scriptFocus:0,sunrise:"05:20(夏)/06:50(冬)",sunset:"18:55(夏)/17:20(冬)",bestHours:"05:00-08:00 / 16:30-18:30",easterEggs:["春天去工业路拍羊蹄甲——整条街都是粉白色的花","去上下杭找一家民国时期的老澡堂——现在还在营业的那种"],weather:"亚热带海洋性季风气候，四季温暖湿润，夏季多台风，冬季短暂温和"},
+
+"泉州":{province:"福建",region:"华东",tags:["海上丝绸之路起点","世界宗教博物馆","闽南文化核心","刺桐城","功夫茶之乡"],keywords:["古早味","信仰多元","闽南烟火","海丝遗韵","虔诚","慢生活"],food:["面线糊","土笋冻","润饼菜","烧肉粽","石花膏","醋肉","海蛎煎","姜母鸭"],locations:[{name:"西街-开元寺-小西埕-钟楼",type:"历史街区",note:"🎯 泉州古城核心，东西塔+红砖厝+闽南小吃，一条街浓缩千年",risk:"⚠️ 西街周末和节假日人山人海"},{name:"蟳埔村",type:"渔村",note:"🎯 蟳埔女头戴簪花围、住蚵壳厝，是中国最有特色的渔村之一",risk:"⚠️ 已成为网红打卡地，想拍原生态需避开周末"},{name:"关帝庙-清净寺-天后宫-文庙",type:"宗教建筑群",note:"泉州古城半径500米内有佛教、伊斯兰教、道教、儒教、妈祖信仰并存",risk:"⚠️ 宗教场所拍摄需尊重相关规矩"}],themes:[{title:"众神之城：泉州500米的宗教地图",desc:"在泉州古城方圆500米内，拍摄佛教、伊斯兰教、道教、儒教、妈祖信仰和平共处的日常",value:"泉州是全世界宗教密度最高的城市之一——宋元时期的刺桐港，接纳了来自全世界的信仰，700年后它们依然并肩而立"},{title:"蟳埔女的簪花人生",desc:"跟拍一位蟳埔女的一天——从清晨簪花到赶海、撬海蛎",value:"蟳埔女是中国最独特的女性群体之一——她们头上的簪花围和住的蚵壳厝，是闽南海洋文化最后的活化石"},{title:"面线糊里的泉州灵魂",desc:"跟拍一家老字号面线糊店从凌晨备料到清晨客满",value:"泉州人的一天，是从一碗面线糊开始的——这碗糊状的食物看起来不起眼，但里面有泉州人对食材最深刻的理解"}],scriptFocus:0,sunrise:"05:25(夏)/06:50(冬)",sunset:"18:55(夏)/17:25(冬)",bestHours:"05:00-08:00 / 16:30-18:30",easterEggs:["凌晨5点到西街，开元寺的钟声+空无一人的石板路是穿越级的体验","去蟳埔村找一位簪花的阿嬷，请她讲头上的花围——每一朵花都有来历"],weather:"亚热带海洋性季风气候，四季温暖，夏季多台风，冬季短暂温和"},
+
+"汕头":{province:"广东",region:"华南",tags:["百年商埠","潮汕文化核心","美食孤岛","工夫茶之乡","海滨邹鲁"],keywords:["古早味","潮汕风情","海港气质","慢生活","美食信仰"],food:["牛肉火锅","潮汕肠粉","蚝烙","牛肉丸","粿条汤","卤鹅","鱼饭","夜粥"],locations:[{name:"小公园-安平路-西堤路骑楼群",type:"历史街区",note:"🎯 中国最大的骑楼建筑群之一，民国商埠风情，正在修缮中",risk:"⚠️ 部分建筑围挡施工中"},{name:"龙眼南-龙眼北美食街",type:"美食街区",note:"汕头美食最集中的区域，凌晨的夜粥摊和清晨的肠粉店同在一条街",risk:"⚠️ 深夜时段注意安全"},{name:"广场轮渡-礐石大桥",type:"滨江交通",note:"汕头人的日常——坐轮渡从老市区到礐石，船上是移动的观测站",risk:null}],themes:[{title:"小公园的黄昏：汕头百年前是远东最繁华的港口",desc:"拍摄小公园骑楼区——残破的民国建筑里仍在经营的百年老店",value:"1860年开埠后，汕头曾是远东最繁华的口岸之一——小公园的骑楼是那个时代的残影，它们正在一片片地倒下去"},{title:"夜粥江湖：汕头人的深夜信仰",desc:"拍摄深夜10点到凌晨4点的汕头夜粥档——一碗白粥配几百种打冷",value:"汕头是中国最晚睡的美食之城——凌晨两点，夜粥档门口还在排队，这是汕头独有的深夜奇观"},{title:"工夫茶与汕头人：每天泡几十次的仪式",desc:"拍摄汕头街头无处不在的工夫茶——杂货店老板、修车师傅、出租车司机，人人都在泡茶",value:"没有一个汕头人不喝工夫茶——这不是仪式，是呼吸，是和饿了要吃饭一样基本的事情"}],scriptFocus:0,sunrise:"05:35(夏)/06:55(冬)",sunset:"18:55(夏)/17:35(冬)",bestHours:"05:00-08:00 / 16:30-18:30",easterEggs:["凌晨3点去长平路——汕头的夜粥一条街正是最热闹的时候","去小公园找一家还在用算盘的百年老店——我保证你找得到"],weather:"亚热带海洋性季风气候，温暖湿润，夏季多台风，冬季温和短暂"},
+
+"珠海":{province:"广东",region:"华南",tags:["百岛之市","浪漫之城","情侣路","横琴","港珠澳大桥"],keywords:["浪漫","悠闲","海风","宜居","年轻","海滨慢生活"],food:["横琴蚝","斗门重壳蟹","白蕉海鲈","唐家茶果","南屏脆肉鲩"],locations:[{name:"情侣路-珠海渔女-日月贝",type:"滨海景观带",note:"珠海最具辨识度的海岸线，日月贝（珠海大剧院）夜景绝美",risk:null},{name:"唐家湾古镇",type:"古镇",note:"🎯 珠海最有历史底蕴的区域，民国建筑+岭南村落+大学城环绕",risk:null},{name:"横琴口岸-横琴大桥",type:"边境景观",note:"看澳门的最佳免费机位，横琴与路氹金光大道仅一河之隔",risk:"⚠️ 口岸区域注意拍摄限制"}],themes:[{title:"情侣路上的珠海：中国最长的滨海公路",desc:"沿情侣路从北到南，拍摄珠海人的滨海日常",value:"情侣路是珠海的名片——但真正的情侣路不是景点，是珠海人下班后散步、跑步、约会的日常生活"},{title:"唐家湾：被遗忘的珠海历史",desc:"拍摄唐家湾古镇——民国总理唐绍仪的故乡，保留了大量民国建筑",value:"珠海给人的印象是一座新城市，但唐家湾的历史可以追溯到宋代——这座古镇是珠海被遗忘的文化根脉"},{title:"一河之隔：横琴与澳门的边界叙事",desc:"拍摄横琴与澳门之间——河这边是珠海，河那边是澳门的赌场金光大道",value:"一河两岸，两个世界——这是中国最独特的城市边界景观之一"}],scriptFocus:0,sunrise:"05:45(夏)/07:05(冬)",sunset:"19:05(夏)/17:50(冬)",bestHours:"05:30-08:00 / 16:30-18:30",easterEggs:["坐一次珠海到深圳的轮渡，在伶仃洋上看港珠澳大桥","去唐家湾找民国第一任总理唐绍仪的故居——在一个不起眼的巷子里"],weather:"亚热带海洋性季风气候，温暖湿润，夏季多台风，冬季温和"},
+
+"桂林":{province:"广西",region:"华南",tags:["山水甲天下","漓江","喀斯特地貌","旅游名城","桂花之乡"],keywords:["山水诗意","灵秀","奇峰异石","漓江渔火","田园牧歌"],food:["桂林米粉","啤酒鱼","荔浦芋扣肉","马蹄糕","桂花糕","田螺酿"],locations:[{name:"漓江（杨堤-兴坪段）-20元人民币背景",type:"自然景观",note:"🎯 兴坪是20元人民币背景拍摄地，漓江渔火+渔翁+鸬鹚是桂林最经典画面",risk:"⚠️ 渔翁+鸬鹚通常是收费摆拍，约50-100元"},{name:"龙脊梯田（龙胜）",type:"梯田景观",note:"🎯 5月灌水期和9月丰收季最美，梯田的几何线条+晨雾",risk:"距市区约2.5小时，山路崎岖"},{name:"东西巷-王城-正阳步行街",type:"历史街区",note:"桂林老城核心，靖江王城+老街区+现代商业的融合",risk:null}],themes:[{title:"漓江上的渔翁：最后的鸬鹚捕鱼人",desc:"跟拍一位漓江老渔翁的日常——凌晨出江、鸬鹚捕鱼、收网",value:"鸬鹚捕鱼是漓江上延续了千年的传统——虽然今天更多是'表演'给游客看，但那些老渔翁和他们的鸬鹚之间，仍然有着真实的共生关系"},{title:"米粉江湖：桂林人的一天从一碗粉开始",desc:"跟拍一家老字号桂林米粉店从凌晨备料到中午收摊",value:"桂林米粉是全国最有名的米粉之一——但在桂林本地，米粉是早餐，不是午餐，正宗的米粉店中午就卖完了"},{title:"梯田上的四季",desc:"记录龙脊梯田不同季节的面貌——春天灌水的镜面效果，夏天绿浪，秋天金黄",value:"龙脊梯田是壮族和瑶族同胞用800年时间在大山上雕刻的艺术品"}],scriptFocus:0,sunrise:"05:55(夏)/07:20(冬)",sunset:"19:25(夏)/17:55(冬)",bestHours:"05:30-08:00 / 17:00-19:00",easterEggs:["去兴坪拍20元人民币背景——一定要清晨5点半到，那时才有漓江晨雾","坐竹筏从杨堤到兴坪——4个小时，把漓江最美的一段完完整整地看一遍"],weather:"亚热带季风气候，四季分明，夏季湿热多雨，冬季温和干燥，春秋宜人"},
+
+"柳州":{province:"广西",region:"华南",tags:["工业重镇","紫荆花城","螺蛳粉之都","奇石之乡","西南工业枢纽"],keywords:["硬核工业","市井烟火","紫荆花海","螺蛳粉信仰","山水工业城"],food:["螺蛳粉","螺蛳鸭脚煲","融安滤粉","牛腊巴","柳州酸","云片糕"],locations:[{name:"柳江沿岸（窑埠古镇-文庙-蟠龙山）",type:"滨江景观带",note:"🎯 柳江呈现V形穿越市区，两岸山水+城市天际线，夜景灯光极美",risk:null},{name:"青云市场",type:"菜市场",note:"柳州最有烟火气的菜市场，各种你叫不出名字的广西食材",risk:"⚠️ 市场拥挤，早上去最热闹"},{name:"柳工/上汽通用五菱厂区周边",type:"工业区",note:"柳州的工业面孔，巨大的厂房+工人村生活",risk:"⚠️ 工厂内部禁止拍摄"}],themes:[{title:"一碗螺蛳粉的工业哲学",desc:"跟拍一家螺蛳粉店从凌晨熬汤到深夜收摊的完整一天——酸笋、螺蛳、米粉的工业化生产链",value:"螺蛳粉从柳州街边小吃变成全国网红——但真正的柳州螺蛳粉和你在网上买的速食版是完全不同的物种"},{title:"紫荆花开的四月柳州",desc:"4月紫荆花盛开时拍摄柳州——28万株紫荆花将整座工业城市变成粉色海洋",value:"一座硬核工业城市在春天变成粉色花海——这种反差是柳州最浪漫的城市表情"},{title:"柳江夜游：一座工业城市的诗意",desc:"拍摄柳江夜景及两岸的市民夜生活",value:"百里柳江是柳州人引以为傲的城市客厅——白天是工业城市的喧嚣，夜晚是山水城市的静谧"}],scriptFocus:0,sunrise:"06:05(夏)/07:25(冬)",sunset:"19:30(夏)/18:05(冬)",bestHours:"05:30-08:00 / 17:00-19:00",easterEggs:["4月初到柳州——整座城市都是粉紫色的，一座工业城市的春天","找一家开了20年的老牌螺蛳粉店——一定是路边摊不是连锁店——拍老板打粉的熟练动作"],weather:"亚热带季风气候，夏季湿热，冬季温和，4月紫荆花季最佳拍摄期"},
+
+"贵阳":{province:"贵州",region:"西南",tags:["中国数谷","避暑之都","山城","喀斯特王国","酸辣江湖"],keywords:["山地风情","凉爽","大数据","酸辣味","喀斯特景观","多民族"],food:["酸汤鱼","肠旺面","牛肉粉","丝娃娃","豆腐圆子","糯米饭","花溪牛肉粉"],locations:[{name:"甲秀楼-南明河-青云路",type:"城市地标+滨河",note:"甲秀楼是贵阳的标志，南明河两岸的夜景灯光很美",risk:null},{name:"黔灵山公园",type:"城市公园",note:"🎯 市区内的森林公园，猴子满山跑，5块钱门票看熊猫的性价比之王",risk:"⚠️ 小心猴子抢东西，不要手提食物"},{name:"花溪-青岩古镇",type:"古镇+田园",note:"花溪十里河滩+青岩古镇的石板路和卤猪脚",risk:"⚠️ 青岩节假日人流大"}],themes:[{title:"酸汤鱼与贵阳人的味觉基因",desc:"跟拍一家传统酸汤鱼店——从野生小番茄发酵酸汤开始",value:"贵州人三天不吃酸，走路打蹿蹿——酸是贵阳人的DNA，每一锅酸汤都是微生物和时间共同完成的艺术品"},{title:"黔灵山的猴子与老人",desc:"拍摄黔灵山公园里每天来喂猴子的老人",value:"黔灵山的猕猴和贵阳老人之间有一种奇妙的共生关系——每天早上，老人们在公园里锻炼，猴子在旁边讨食，这是贵阳独有的城市画面"},{title:"数谷贵阳：一座山城的数字化雄心",desc:"拍摄贵阳新区的数据中心建筑群与老城的市井生活对比",value:"贵阳是中国大数据之都——苹果、腾讯、华为的数据中心都在这，但一街之隔就是喀斯特山峰和老城区，这种对比太迷人了"}],scriptFocus:0,sunrise:"06:10(夏)/07:40(冬)",sunset:"19:45(夏)/18:10(冬)",bestHours:"06:00-08:30 / 17:00-19:00",easterEggs:["去黔灵山——花5块钱看大熊猫，然后被猴子打劫（开玩笑的，注意收好手机）","找一家巷子里的老肠旺面馆，看师傅现场做面条——那是人类学级别的拍摄素材"],weather:"亚热带高原季风气候，夏季凉爽(避暑之都)，冬季湿冷，多雨雾"},
+
+"兰州":{province:"甘肃",region:"西北",tags:["黄河之都","牛肉面之乡","丝路重镇","西北枢纽","两山夹一河"],keywords:["豪爽","黄河文化","西域风情","牛肉面信仰","西北粗粝"],food:["兰州牛肉面","手抓羊肉","酿皮子","灰豆子","羊肉面片","牛奶鸡蛋醪糟","浆水面"],locations:[{name:"黄河铁桥(中山桥)-白塔山-黄河母亲",type:"滨河景观带",note:"🎯 黄河穿城而过，中山桥+白塔山+黄河水的黄色构成兰州最经典的画面",risk:null},{name:"大众巷-张掖路-木塔巷",type:"美食街区",note:"兰州美食集中地，清晨牛肉面馆门口排队的人群是最佳人文素材",risk:"⚠️ 部分老字号只在上午营业"},{name:"甘肃省博物馆",type:"博物馆",note:"马踏飞燕（铜奔马）真品所在地，丝路文物极丰富",risk:"⚠️ 馆内拍摄需关闭闪光灯"}],themes:[{title:"牛肉面江湖：兰州人的清晨是从一碗面开始的",desc:"凌晨4点跟拍牛肉面馆从熬汤到开门、到早晨排队的人群",value:"兰州人的胃是被牛肉面定义的——凌晨5点开门，下午2点关门，正宗的兰州人只在早上吃牛肉面"},{title:"黄河边的兰州：一条河穿越一座城",desc:"沿黄河拍摄兰州人的滨河生活——散步、唱秦腔、喝三炮台、放风筝",value:"兰州是中国唯一一座黄河穿城而过的省会——黄河对兰州人来说不是景点，是家门口的河"},{title:"白塔山上看兰州：一座被低估的西北城市",desc:"从白塔山俯拍兰州——两山夹一河的独特城市形态",value:"兰州是中国最狭长的城市之一——东西40公里，南北最窄处只有2公里，两山夹一河的地形独一无二"}],scriptFocus:0,sunrise:"05:55(夏)/08:15(冬)",sunset:"20:20(夏)/18:00(冬)",bestHours:"05:30-08:00 / 18:00-20:00",easterEggs:["凌晨4点半到磨沟沿或吾穆勒——看第一锅牛肉面汤出炉，那香气能飘一条街","坐一次黄河索道上白塔山，在缆车上拍黄河——中国最酷的城市缆车视角之一"],weather:"温带大陆性气候，干燥少雨，昼夜温差大，夏热冬冷，日照充足"},
+
+"西宁":{province:"青海",region:"西北",tags:["夏都","青藏高原门户","多民族交汇","湟水谷地","中国夏都"],keywords:["清凉","高原风情","多元民族","宗教文化","湟水河","慢节奏"],food:["手抓羊肉","青海酸奶","酿皮","尕面片","甜醅","羊肠面","狗浇尿饼"],locations:[{name:"东关清真大寺-莫家街-水井巷",type:"老城区+宗教建筑",note:"🎯 东关大寺周五主麻日场景宏大，莫家街是西宁美食地标",risk:"⚠️ 清真寺拍摄需尊重宗教礼仪，大殿内禁止非穆斯林进入"},{name:"塔尔寺（湟中区）",type:"藏传佛教寺院",note:"宗喀巴大师诞生地，酥油花、堆绣、壁画并称三绝",risk:"⚠️ 殿内禁止拍摄，寺内顺时针行走"},{name:"北禅寺-南山公园",type:"城市观景点",note:"北禅寺是悬空而建的明代道观，南山公园可俯瞰西宁全城",risk:null}],themes:[{title:"西宁的早晨：一碗杂碎汤里的高原",desc:"跟拍凌晨的西宁——清真寺的邦克声、从羊杂碎汤开始的回族早餐",value:"西宁的早晨是从清真寺的邦克声开始的——这座多民族城市，信仰和食物一样多元"},{title:"塔尔寺的酥油花",desc:"拍摄塔尔寺艺僧制作酥油花的过程——在冰冷的水中用手指塑形",value:"酥油花是塔尔寺三绝之一——艺僧在零度冰水中用手指捏制酥油，每一朵花都是对信仰的献祭"},{title:"西宁的夏天：一群来避暑的人",desc:"夏季拍摄从全国各地来西宁避暑的人——他们为什么选择西宁？",value:"西宁是中国夏都——当南方城市40度的时候，西宁25度，这座高原城市成了全国人的避暑天堂"}],scriptFocus:0,sunrise:"06:05(夏)/08:25(冬)",sunset:"20:30(夏)/18:05(冬)",bestHours:"05:30-08:30 / 18:00-20:00",easterEggs:["周五中午去东关清真大寺——主麻日，上万穆斯林同时在寺外礼拜","去莫家街喝一碗现酿的青海酸奶——上面有一层黄色的奶皮，酸到灵魂出窍"],weather:"高原大陆性气候，冬长夏短，凉爽宜人(夏都)，昼夜温差大，紫外线强"},
+
+"银川":{province:"宁夏",region:"西北",tags:["塞上江南","西夏古都","凤凰城","黄河明珠","中国电影从这里走向世界"],keywords:["西夏遗韵","塞上风光","回族文化","黄河文明","西北粗粝中的秀美"],food:["手抓羊肉","羊杂碎","羊肉臊子面","烩小吃","中卫蒿子面","盖碗茶"],locations:[{name:"镇北堡西部影城",type:"影视基地",note:"《大话西游》《红高粱》《新龙门客栈》等经典取景地",risk:"⚠️ 商业化程度高，门票80元"},{name:"西夏陵国家考古遗址公园",type:"历史遗址",note:"🎯 西夏王陵被称为东方金字塔，贺兰山下的土黄色陵墓群极具历史感",risk:"⚠️ 无人机禁飞"},{name:"怀远夜市-南门广场",type:"夜市+城市地标",note:"银川最热闹的夜市，清真美食+回族文化",risk:null}],themes:[{title:"西夏王陵：一个消失王朝的最后背影",desc:"拍摄贺兰山下的西夏王陵——黄昏时分，金色的阳光打在土黄色的陵墓上",value:"西夏王朝存在了189年，然后被蒙古人彻底摧毁——今天，只有9座巨大的土堆还站在贺兰山下，是西夏文明最后的密码"},{title:"镇北堡：中国电影从这里走向世界",desc:"拍摄镇北堡影城——但焦点是游客cos至尊宝和紫霞仙子的场景",value:"《大话西游》上映快30年了——但每天仍有无数人穿着至尊宝的衣服在镇北堡拍照，这部电影的影响力比你想象的更深"},{title:"银川的羊肉哲学",desc:"跟拍一家手抓羊肉老店——从选羊到上桌的全过程",value:"宁夏滩羊是中国最好的羊肉之一——清水煮羊肉，只加盐，银川人对羊肉的自信就是这么简单粗暴"}],scriptFocus:0,sunrise:"05:45(夏)/08:10(冬)",sunset:"20:20(夏)/17:50(冬)",bestHours:"05:30-08:00 / 18:00-20:00",easterEggs:["黄昏去西夏王陵——那时候的光线把陵墓染成金色，贺兰山是深蓝色的背景","去怀远夜市吃一碗羊杂碎——凌晨12点还在排队的那种"],weather:"温带大陆性气候，干燥少雨，昼夜温差大，日照充足，夏热冬冷"},
+
+"太原":{province:"山西",region:"华北",tags:["龙城","晋商故里","中国醋都","面食王国","能源重镇"],keywords:["厚重质感","晋商遗韵","面食天堂","老工业气息","三晋文化"],food:["刀削面","过油肉","莜面栲栳栳","头脑","太原打卤面","山西老陈醋"],locations:[{name:"晋祠",type:"古建筑群",note:"中国现存最早的皇家祭祀园林，圣母殿宋代彩塑是世界级文化遗产",risk:"距市区较远"},{name:"柳巷-钟楼街-食品街",type:"老城商业街",note:"🎯 太原老城核心，老字号+新商业+市井烟火融合",risk:"⚠️ 节假日人流量大"},{name:"山西博物院",type:"博物馆",note:"晋侯鸟尊等山西文物精华，建筑本身也极具设计感",risk:"⚠️ 馆内禁止闪光灯"}],themes:[{title:"刀削面江湖：山西人的面食信仰",desc:"跟拍一家老字号刀削面馆——削面师傅头顶面团，一刀一刀削进沸水",value:"世界面食在中国，中国面食在山西——山西有1000多种面食，刀削面是最具画面感的一种"},{title:"晋祠：3000年前的山西是什么样子",desc:"拍摄晋祠——宋代建筑、彩塑、古树、泉水",value:"晋祠是中国现存最古老的皇家园林——3000年的周柏、1000年的宋代彩塑、难老泉至今仍在流淌"},{title:"醋都太原：一缸醋需要等待的8年",desc:"拍摄山西老陈醋的传统酿造工艺——蒸、酵、熏、淋、陈",value:"山西人爱吃醋——但你可能不知道，一缸正宗的老陈醋需要陈化8年以上才能出缸，这种等待本身就是一种哲学"}],scriptFocus:0,sunrise:"05:15(夏)/07:40(冬)",sunset:"19:50(夏)/17:25(冬)",bestHours:"05:30-08:00 / 17:00-19:00",easterEggs:["去宁化府益源庆醋坊——整个街道都是醋香味，免费闻","找一个削面师傅拍他用头顶着面团削面——那是人类学级别的画面"],weather:"温带季风气候，四季分明，冬季干冷，夏季温热多雨，春秋短促"},
+
+"石家庄":{province:"河北",region:"华北",tags:["火车拉来的城市","新中国药都","赵州桥","西柏坡","北方粮仓"],keywords:["朴实","低调","工业基底","燕赵遗风","交通枢纽"],food:["驴肉火烧","金凤扒鸡","藁城宫面","行唐大枣","赵县雪花梨","牛肉罩饼"],locations:[{name:"正定古城（隆兴寺-荣国府-南城门）",type:"古城",note:"🎯 正定是石家庄文化底蕴最深厚的区域，隆兴寺宋代建筑世界级",risk:"⚠️ 石家庄市区到正定约40分钟"},{name:"河北博物院",type:"博物馆",note:"满城汉墓金缕玉衣、长信宫灯等国宝所在地",risk:"⚠️ 馆内禁止闪光灯"},{name:"万象城-新百广场周边",type:"现代商业区",note:"石家庄城市更新最显著的区域，新老建筑交替的城市纹理",risk:null}],themes:[{title:"正定古城：石家庄人不知道的宝藏",desc:"拍摄正定古城——千年古刹隆兴寺、被低估的古城墙和荣国府",value:"石家庄总被说成'最没存在感的省会'——但正定古城的历史厚度远超大多数人的想象"},{title:"驴肉火烧江湖：河北人的汉堡包",desc:"跟拍一家驴肉火烧老店——从凌晨杀驴（可回避）到烤饼到出餐",value:"驴肉火烧是河北第一美食——外地的火烧永远做不到河间/保定/石家庄的水准，这是地方饮食文化的密码"},{title:"火车经过的城市：石家庄站24小时",desc:"以石家庄火车站为中心，拍摄24小时内的人来人往",value:"石家庄是一座被火车拉来的城市——京广线和石太线交汇于此，这座城市的命运和铁轨紧紧绑在一起"}],scriptFocus:0,sunrise:"05:10(夏)/07:35(冬)",sunset:"19:45(夏)/17:15(冬)",bestHours:"05:30-08:00 / 17:00-19:00",easterEggs:["去正定南城门等一场日落——古城墙和夕阳是绝配","去赵县看赵州桥——小学课本里的那座，1400年了还在用"],weather:"温带季风气候，四季分明，夏季炎热多雨，冬季干冷多雾霾"},
+
+"呼和浩特":{province:"内蒙古",region:"华北",tags:["青城","乳都","草原之门","召城","中国乳都"],keywords:["草原风情","蒙汉交融","豪爽","召庙文化","奶食天堂"],food:["手把肉","烤羊排","烧麦(稍麦)","羊杂碎","莜面","奶皮子","奶茶","奶豆腐"],locations:[{name:"大召寺-塞上老街-席力图召",type:"宗教建筑群+古街",note:"🎯 大召寺是呼和浩特最著名的藏传佛教寺院，周边塞上老街保留老街风貌",risk:"⚠️ 寺内部分区域禁止拍摄"},{name:"内蒙古博物院",type:"博物馆",note:"了解内蒙古游牧文化最好的地方，恐龙化石+草原历史+民族文物",risk:null},{name:"希拉穆仁草原（近郊）",type:"草原",note:"距市区最近的草原体验区，但真正的好草原需要深入锡林郭勒或呼伦贝尔",risk:"🎯 距市区约1.5小时车程"}],themes:[{title:"烧麦之城：呼和浩特人的清晨信仰",desc:"跟拍一家老字号稍麦馆——呼市的稍麦按两卖，一两有8个",value:"呼和浩特的烧麦和南方的烧卖是完全不同的物种——羊肉大葱馅、皮薄如纸，配一壶砖茶，是呼市人最正式的早餐"},{title:"大召寺的晨钟暮鼓",desc:"拍摄大召寺及周边的藏传佛教日常",value:"呼和浩特被称为召城——明清时期这里有几十座召庙，大召寺的诵经声至今仍在回响"},{title:"乳都的奶食地图",desc:"拍摄呼和浩特的奶食文化——从清晨的鲜奶到手工奶皮子、奶豆腐",value:"呼和浩特是中国乳都——伊利和蒙牛的总部都在这里，但真正的奶食文化不在工厂，在牧区到市区的奶食店"}],scriptFocus:0,sunrise:"05:15(夏)/07:55(冬)",sunset:"20:05(夏)/17:15(冬)",bestHours:"05:00-08:00 / 17:00-19:30",easterEggs:["去格日勒阿妈喝一碗锅茶——不是奶茶，是锅茶，里面有炒米、奶皮子、风干肉","夏天去希拉穆仁草原——虽然不如呼伦贝尔，但离市区近，一天往返够用"],weather:"中温带大陆性季风气候，冬季漫长严寒，夏季短暂凉爽，干燥少雨"},
+
+"海口":{province:"海南",region:"华南",tags:["椰城","热带滨海","自贸港","骑楼老街","老爸茶之都"],keywords:["慵懒","热带风情","老爸茶文化","骑楼记忆","海风椰林"],food:["文昌鸡","加积鸭","清补凉","海南粉","老爸茶","椰子鸡","陵水酸粉"],locations:[{name:"骑楼老街-得胜沙-中山路",type:"历史街区",note:"🎯 海口最具特色的建筑群，南洋风格骑楼+老爸茶店+本地生活",risk:null},{name:"假日海滩-西秀海滩",type:"海滨",note:"海口人日常看海的地方，傍晚沙滩上踢足球、散步的市民",risk:"⚠️ 正午暴晒，注意防晒"},{name:"海南省博物馆",type:"博物馆",note:"了解海南历史和南海文化最好的地方",risk:null}],themes:[{title:"老爸茶江湖：海口人的下午时光",desc:"拍摄一家老爸茶馆从下午2点到傍晚6点的日常——阿公阿婆们的一壶茶、一碟点心、一下午",value:"老爸茶是海南独有的生活方式——几块钱一壶茶，可以坐一整个下午，这是热带海岛的慢生活哲学"},{title:"骑楼下的百年记忆",desc:"拍摄骑楼老街——从民国建筑到今天的店铺、茶店、居民生活",value:"海口的骑楼是南洋华侨回乡建造的——每一栋骑楼都是一个华侨家庭的故事，他们从海南出发，到东南亚打拼，然后回家建了一栋房子"},{title:"清补凉的夏天",desc:"拍摄一家老字号清补凉摊——椰奶、绿豆、薏米、红枣、鹌鹑蛋……一碗里面有半个热带",value:"海南的夏天是从一碗清补凉开始的——椰奶打底，十几种料，这是热带海岛送给夏天的礼物"}],scriptFocus:0,sunrise:"06:05(夏)/07:15(冬)",sunset:"19:20(夏)/18:10(冬)",bestHours:"06:00-08:30 / 17:00-19:00",easterEggs:["下午3点去骑楼老街找一家人最多的老爸茶馆——坐下来，相机放桌上，让故事自己走来","天黑前去白沙门公园——城市尽头的海滩+日落，海口最被低估的拍摄点"],weather:"热带季风气候，全年温暖湿润，夏长无冬，紫外线强，夏秋多台风"},
+
+"三亚":{province:"海南",region:"华南",tags:["东方夏威夷","天涯海角","热带天堂","度假胜地","南海明珠"],keywords:["浪漫","热带风情","海洋文化","度假气息","黎苗文化"],food:["海鲜","椰子鸡","抱罗粉","陵水酸粉","清补凉","港门粉","虾饼"],locations:[{name:"三亚湾-椰梦长廊",type:"滨海景观带",note:"三亚最长的海岸线，日落时整条海岸线变成金色",risk:"⚠️ 游客集中区，小偷注意"},{name:"鹿回头公园",type:"山顶公园",note:"🎯 俯瞰三亚全景的最佳机位——凤凰岛+三亚湾+大东海同框",risk:null},{name:"崖州古城",type:"古城",note:"三亚被忽略的历史底蕴——崖州是古代流放官员的地方",risk:"距市区约1小时"}],themes:[{title:"三亚的背面：游客看不到的海南",desc:"拍摄三亚游客区之外——本地人的渔村、菜市场、老爸茶馆",value:"三亚在游客眼中是度假天堂——但真正的三亚人过着和旅游业完全无关的日常生活"},{title:"崖州古城：流放者的天涯",desc:"拍摄崖州古城——古代流放官员来到这里，以为自己到了世界的尽头",value:"三亚不只是海滩和度假村——崖州古城承载了中国古代最悲情的历史记忆，这里是真正的'天涯海角'"},{title:"三亚湾落日：一湾海岸的24小时",desc:"从清晨渔民出海到深夜情侣散步，记录三亚湾的24小时",value:"三亚湾是三亚最长的公共海滩——它属于每一个三亚人和每一个游客，是这座城市最大的公共客厅"}],scriptFocus:0,sunrise:"06:10(夏)/07:15(冬)",sunset:"19:15(夏)/18:10(冬)",bestHours:"06:00-08:30 / 17:00-19:00",easterEggs:["清晨6点去三亚湾——渔民们正在收网，海滩上都是活蹦乱跳的鱼","去崖州古城找一块被刻了诗的石碑——古代被贬到这里的官员，在石头上留下了无数心碎的诗句"],weather:"热带季风气候，全年温暖，夏长无冬，紫外线强，夏秋多台风"},
+
+"台南":{province:"台湾",region:"台湾",tags:["台湾文化古都","美食天堂","古城庙宇","人情味","小吃王国"],keywords:["古早味","人情味","慢生活","庙宇文化","小吃","历史底蕴"],food:["担仔面","棺材板","碗粿","牛肉汤","虾卷","豆花","鳝鱼意面","冬瓜茶"],locations:[{name:"安平老街-安平古堡-安平树屋",type:"历史街区",note:"🎯 安平是台湾历史最悠久的区域，荷兰时代的古堡+老街小吃",risk:null},{name:"赤嵌楼-祀典武庙-大天后宫",type:"历史建筑群",note:"台南最密集的庙宇区，一步一庙，香火鼎盛",risk:"⚠️ 庙宇内拍摄需尊重祭拜者"},{name:"神农街-正兴街-国华街",type:"老街区",note:"台南最文艺的老街，老房子改造成的咖啡馆、文创店、手工作坊",risk:null}],themes:[{title:"台南人的早餐：一碗牛肉汤的清晨仪式",desc:"凌晨4点跟拍台南牛肉汤店——现宰温体牛肉+滚烫高汤",value:"台南人的一天是从一碗牛肉汤开始的——而且必须在早上8点前喝，因为过了这个时间，当天现宰的温体牛肉就卖完了"},{title:"众神之城的台南：三步一小庙五步一大庙",desc:"拍摄台南的庙宇密度——从妈祖庙到关帝庙到王爷庙",value:"台南是台湾的宗教中心——几乎每条街都有一座庙，台南人拜拜就像我们喝咖啡一样日常"},{title:"老屋新生：台南的城市更新哲学",desc:"拍摄台南老屋改造——从破旧的民居到咖啡馆、民宿、文创空间",value:"台南的城市更新不是推倒重建——而是在老房子里种下新生活，这是台湾最有味道的城市更新模式"}],scriptFocus:0,sunrise:"05:20(夏)/06:40(冬)",sunset:"18:45(夏)/17:25(冬)",bestHours:"05:00-08:00 / 16:30-18:30",easterEggs:["凌晨4点到六千牛肉汤——台南最疯狂的排队，凌晨排队的都是本地人","农历正月到台南看盐水蜂炮——全世界最疯狂的元宵节活动"],weather:"热带季风气候，全年温暖，夏季湿热多雨，冬季温和干燥"},
+
+"高雄":{province:"台湾",region:"台湾",tags:["港都","海洋首都","工业之城","打狗","台湾最大港"],keywords:["海港气质","工业记忆","南部热情","港都风情","多元"],food:["大肠包小肠","鸭肉珍","高雄牛乳大王","阿婆冰","旗津烤鱿鱼","海鲜粥"],locations:[{name:"驳二艺术特区",type:"文创园区",note:"🎯 旧仓库改造成的艺术区，高雄最文艺的地方，紧邻高雄港",risk:null},{name:"旗津半岛",type:"海岛",note:"坐轮渡5分钟到旗津，灯塔+炮台+海鲜街+黑沙滩",risk:null},{name:"美丽岛捷运站",type:"交通枢纽",note:"全世界最美的地铁站之一——光之穹顶是全球最大玻璃艺术作品",risk:"⚠️ 拍摄需注意不要妨碍乘客通行"}],themes:[{title:"驳二：从仓库到艺术区的城市蜕变",desc:"拍摄驳二艺术特区——从日治时期的糖业仓库到今天的艺术空间",value:"高雄是台湾的工业重镇——驳二的改造是这座城市从工业转向文化的最成功样本"},{title:"旗津轮渡：高雄人的海岛日常",desc:"拍摄旗津轮渡及岛上的渔村生活",value:"坐5分钟的轮渡从高雄市区到旗津——这是高雄人周末最爱做的事情，一座海岛城市的幸福感就在这5分钟里"},{title:"高雄港的日与夜：台湾最大的港口",desc:"拍摄高雄港——货轮、吊臂、集装箱、码头工人",value:"高雄港是台湾最大的港口——这座城市因港而生，理解高雄要从港口开始"}],scriptFocus:0,sunrise:"05:25(夏)/06:40(冬)",sunset:"18:45(夏)/17:25(冬)",bestHours:"05:00-08:00 / 16:30-18:30",easterEggs:["坐旗津轮渡的最后一班——在船上看高雄港的夜景","去美丽岛捷运站——不要赶路，站在光之穹顶下抬头看10分钟"],weather:"热带季风气候，全年温暖，夏季湿热多雨，冬季温和干燥"},
+
+"香港":{province:"香港",region:"香港",tags:["东方之珠","国际都会","购物天堂","美食之都","维多利亚港"],keywords:["繁华","高效","多元","国际化","霓虹灯","山海城"],food:["云吞面","烧鹅","丝袜奶茶","菠萝油","车仔面","鸡蛋仔","桥底辣蟹"],locations:[{name:"维多利亚港-星光大道-天星小轮",type:"海港景观",note:"香港最经典的画面——维港天际线+天星小轮+灯光的倒影",risk:"⚠️ 无人机全港大部分区域禁飞"},{name:"深水埗-鸭寮街-北河街",type:"老街区",note:"🎯 香港最有烟火气的区域，旧货摊、大排档、霓虹灯招牌",risk:"⚠️ 街道狭窄，注意安全"},{name:"中环-上环-荷李活道",type:"金融区+艺术区",note:"摩天大楼+街头涂鸦+古董街的极强反差",risk:null}],themes:[{title:"深水埗的霓虹：香港最真实的底色",desc:"拍摄深水埗老街区——鸭寮街的旧货摊、北河街的排档、正在消失的霓虹招牌",value:"游客去尖沙咀拍维港——但香港的灵魂在深水埗，那些即将被LED取代的霓虹招牌是香港最后的光"},{title:"天星小轮：在维港上漂了一百年",desc:"拍摄天星小轮——从尖沙咀到中环，一趟4港币的百年航线",value:"天星小轮从1888年开始就在维港上往返——香港从一个小渔村变成国际都会，它见证了全过程"},{title:"茶餐厅的A餐B餐C餐",desc:"拍摄一家老式茶餐厅从清晨到深夜——菠萝油、丝袜奶茶、沙爹牛肉面",value:"茶餐厅是香港最伟大的发明——用最少的空间、最快的速度、最便宜的价格，让每一个人都能吃上一顿热饭"}],scriptFocus:0,sunrise:"05:45(夏)/07:05(冬)",sunset:"19:10(夏)/17:50(冬)",bestHours:"05:30-08:00 / 16:30-18:30",easterEggs:["坐凌晨5点半的第一班天星小轮——整个维港都是你的","去深水埗找一块还没被拆掉的霓虹招牌——趁它们还在，快点去拍"],weather:"亚热带季风气候，夏季湿热，冬季温和干燥，夏秋多台风"},
+
+"澳门":{province:"澳门",region:"澳门",tags:["东方赌城","世界遗产","中葡交融","美食天堂","东方蒙地卡罗"],keywords:["中西文化交融","赌城光影","葡式风情","妈祖文化","澳门味道"],food:["葡式蛋挞","猪扒包","水蟹粥","马介休","木糠布丁","澳门杏仁饼","非洲鸡"],locations:[{name:"大三巴牌坊-恋爱巷-哪吒庙",type:"历史遗址",note:"🎯 大三巴+哪吒庙仅一墙之隔——中西文化的极致碰撞",risk:"⚠️ 大三巴永远人山人海，清晨7点前才清净"},{name:"议事亭前地-岗顶-妈阁庙",type:"世界遗产区",note:"澳门历史城区是世界文化遗产，葡式碎石路+巴洛克教堂+中式庙宇",risk:null},{name:"路环-安德鲁饼店-黑沙滩",type:"离岛",note:"澳门最安静的区域，安德鲁蛋挞的发源地，和澳门半岛的赌城氛围完全不同",risk:"距市区约30分钟"}],themes:[{title:"大三巴与哪吒庙：500年的文化共处",desc:"拍摄大三巴（天主教遗址）与哪吒庙（中式庙宇）仅一墙之隔的奇观",value:"澳门是世界文化遗产密度最高的城市之一——400多年的中西文化交融，在一个街角就能看到天主教堂和中国庙宇肩并肩站着"},{title:"安德鲁与玛嘉烈：一只蛋挞的江湖",desc:"拍摄两家葡挞名店的日常——安德鲁和玛嘉烈，曾经的夫妻，今天的对手",value:"澳门葡挞的故事比任何小说都精彩——一个英国人创造了它，一对离婚的夫妻把它做成了两个竞争的帝国"},{title:"赌城之外：路环的慢澳门",desc:"拍摄路环岛——澳门的背面，没有赌场，只有渔村、蛋挞店和黑沙滩",value:"大多数人来澳门是为了赌场——但路环岛的澳门，节奏慢得像是另一个国家"}],scriptFocus:0,sunrise:"05:50(夏)/07:05(冬)",sunset:"19:10(夏)/17:50(冬)",bestHours:"05:30-08:00 / 16:30-18:30",easterEggs:["早上7点到大三巴——空无一人的大三巴比人山人海时震撼一百倍","去路环安德鲁买第一炉蛋挞——刚出炉的，酥皮还在滋滋作响"],weather:"亚热带季风气候，夏季湿热，冬季温和干燥，夏秋多台风"}
+
+};
+// CITY_DATABASE_END
+
+// ==================== 交通费用矩阵 ====================
+// 从南昌/赣州到各城市的预估交通费（高铁二等座/动车，单位：元）
+// 格式：{ from: "南昌"|"赣州", train: 高铁价, bus: 大巴价, duration: "时长" }
+var TRAVEL_COST = {
+  "南昌": {
+    "南昌": {train:0, bus:0, duration:"同城"},
+    "赣州": {train:51.5, bus:65, duration:"2h"},
+    "北京": {train:568, bus:null, duration:"6h"},
+    "上海": {train:267, bus:null, duration:"3.5h"},
+    "广州": {train:338, bus:null, duration:"4.5h"},
+    "深圳": {train:365, bus:null, duration:"5h"},
+    "杭州": {train:183, bus:null, duration:"2.5h"},
+    "成都": {train:460, bus:null, duration:"7h"},
+    "重庆": {train:406, bus:null, duration:"6.5h"},
+    "南京": {train:157, bus:null, duration:"2.5h"},
+    "武汉": {train:107, bus:80, duration:"1.5h"},
+    "西安": {train:428, bus:null, duration:"6.5h"},
+    "长沙": {train:105, bus:90, duration:"1.5h"},
+    "郑州": {train:274, bus:null, duration:"4h"},
+    "青岛": {train:368, bus:null, duration:"5.5h"},
+    "大连": {train:598, bus:null, duration:"8h"},
+    "厦门": {train:178, bus:null, duration:"2.5h"},
+    "苏州": {train:233, bus:null, duration:"3h"},
+    "宁波": {train:210, bus:null, duration:"3h"},
+    "昆明": {train:528, bus:null, duration:"8h"},
+    "丽江": {train:618, bus:null, duration:"9.5h"},
+    "大理": {train:598, bus:null, duration:"9h"},
+    "拉萨": {train:998, bus:null, duration:"36h(需中转)"},
+    "乌鲁木齐": {train:868, bus:null, duration:"24h(需中转)"},
+    "哈尔滨": {train:728, bus:null, duration:"10h"},
+    "长春": {train:658, bus:null, duration:"9h"},
+    "沈阳": {train:578, bus:null, duration:"8h"},
+    "济南": {train:268, bus:null, duration:"4h"},
+    "合肥": {train:98, bus:70, duration:"1h"},
+    "福州": {train:158, bus:null, duration:"2h"},
+    "泉州": {train:168, bus:null, duration:"2.5h"},
+    "汕头": {train:218, bus:null, duration:"3.5h"},
+    "珠海": {train:338, bus:null, duration:"4.5h"},
+    "桂林": {train:178, bus:null, duration:"3h"},
+    "柳州": {train:218, bus:null, duration:"3.5h"},
+    "贵阳": {train:298, bus:null, duration:"4.5h"},
+    "兰州": {train:538, bus:null, duration:"9h"},
+    "西宁": {train:588, bus:null, duration:"10h"},
+    "银川": {train:558, bus:null, duration:"10h"},
+    "太原": {train:358, bus:null, duration:"5.5h"},
+    "石家庄": {train:338, bus:null, duration:"5h"},
+    "呼和浩特": {train:498, bus:null, duration:"8h"},
+    "海口": {train:428, bus:null, duration:"8h(含轮渡)"},
+    "三亚": {train:468, bus:null, duration:"9h(含轮渡)"},
+    "台南": {train:null, bus:null, duration:"需飞台湾再转"},
+    "高雄": {train:null, bus:null, duration:"需飞台湾再转"},
+    "香港": {train:378, bus:null, duration:"5h"},
+    "澳门": {train:388, bus:null, duration:"5.5h"},
+    "default": {train:350, bus:200, duration:"预估"}
+  },
+  "赣州": {
+    "赣州": {train:0, bus:0, duration:"同城"},
+    "南昌": {train:51.5, bus:65, duration:"2h"},
+    "北京": {train:608, bus:null, duration:"7.5h"},
+    "上海": {train:338, bus:null, duration:"5h"},
+    "广州": {train:138, bus:100, duration:"2.5h"},
+    "深圳": {train:158, bus:120, duration:"3h"},
+    "杭州": {train:248, bus:null, duration:"4h"},
+    "成都": {train:518, bus:null, duration:"9h"},
+    "重庆": {train:468, bus:null, duration:"8h"},
+    "南京": {train:228, bus:null, duration:"3.5h"},
+    "武汉": {train:158, bus:120, duration:"3h"},
+    "西安": {train:488, bus:null, duration:"8h"},
+    "长沙": {train:138, bus:110, duration:"2.5h"},
+    "郑州": {train:338, bus:null, duration:"5h"},
+    "青岛": {train:438, bus:null, duration:"7h"},
+    "大连": {train:668, bus:null, duration:"10h"},
+    "厦门": {train:108, bus:85, duration:"1.5h"},
+    "苏州": {train:298, bus:null, duration:"4.5h"},
+    "宁波": {train:278, bus:null, duration:"4h"},
+    "昆明": {train:588, bus:null, duration:"10h"},
+    "丽江": {train:678, bus:null, duration:"11.5h"},
+    "大理": {train:658, bus:null, duration:"11h"},
+    "拉萨": {train:1058, bus:null, duration:"40h(需中转)"},
+    "乌鲁木齐": {train:928, bus:null, duration:"28h(需中转)"},
+    "哈尔滨": {train:798, bus:null, duration:"12h"},
+    "长春": {train:728, bus:null, duration:"11h"},
+    "沈阳": {train:648, bus:null, duration:"10h"},
+    "济南": {train:338, bus:null, duration:"5.5h"},
+    "合肥": {train:168, bus:130, duration:"2.5h"},
+    "福州": {train:128, bus:100, duration:"2h"},
+    "泉州": {train:118, bus:90, duration:"2h"},
+    "汕头": {train:88, bus:70, duration:"1.5h"},
+    "珠海": {train:178, bus:140, duration:"3h"},
+    "桂林": {train:158, bus:120, duration:"3h"},
+    "柳州": {train:188, bus:140, duration:"3.5h"},
+    "贵阳": {train:358, bus:null, duration:"6h"},
+    "兰州": {train:598, bus:null, duration:"11h"},
+    "西宁": {train:648, bus:null, duration:"12h"},
+    "银川": {train:618, bus:null, duration:"12h"},
+    "太原": {train:418, bus:null, duration:"7h"},
+    "石家庄": {train:398, bus:null, duration:"6.5h"},
+    "呼和浩特": {train:558, bus:null, duration:"10h"},
+    "海口": {train:null, bus:null, duration:"需经广州转"},
+    "三亚": {train:null, bus:null, duration:"需经广州转"},
+    "台南": {train:null, bus:null, duration:"需飞台湾再转"},
+    "高雄": {train:null, bus:null, duration:"需飞台湾再转"},
+    "香港": {train:178, bus:null, duration:"3.5h"},
+    "澳门": {train:188, bus:null, duration:"4h"},
+    "default": {train:350, bus:200, duration:"预估"}
+  }
+};
+
+// ==================== 获取交通费用 ====================
+function getTravelCost(homeCity, targetCity) {
+  var costs = TRAVEL_COST[homeCity];
+  if (!costs) return TRAVEL_COST["南昌"]["default"];
+  var c = costs[targetCity];
+  if (!c) {
+    // 智能估算：同省便宜，邻省中等，远距离贵
+    var targetData = CITY_DATABASE[targetCity];
+    if (!targetData) return {train: 300, bus: 200, duration: "预估"};
+    var homeData = CITY_DATABASE[homeCity];
+    if (!homeData) return {train: 300, bus: 200, duration: "预估"};
+    if (homeData.province === targetData.province) {
+      return {train: 40, bus: 50, duration: "1h(同省)"};
+    } else if (homeData.region === targetData.region) {
+      return {train: 150, bus: 120, duration: "2-3h(邻省)"};
+    } else {
+      return {train: 350, bus: 200, duration: "预估4-8h"};
+    }
+  }
+  return c;
+}
+
+// ==================== 城市查找（支持模糊匹配） ====================
+function findCity(name) {
+  name = name.trim();
+  // 精确匹配
+  if (CITY_DATABASE[name]) return CITY_DATABASE[name];
+  // 去掉"市"字再匹配
+  var clean = name.replace(/市$/,"");
+  if (CITY_DATABASE[clean]) return CITY_DATABASE[clean];
+  // 加"市"字再匹配
+  if (CITY_DATABASE[clean+"市"]) return CITY_DATABASE[clean+"市"];
+  // 模糊搜索
+  var keys = Object.keys(CITY_DATABASE);
+  for (var i=0; i<keys.length; i++) {
+    if (keys[i].indexOf(clean) !== -1 || clean.indexOf(keys[i]) !== -1) {
+      return CITY_DATABASE[keys[i]];
+    }
+  }
+  return null;
+}
+
+function findCityName(name) {
+  name = name.trim();
+  if (CITY_DATABASE[name]) return name;
+  var clean = name.replace(/市$/,"");
+  if (CITY_DATABASE[clean]) return clean;
+  if (CITY_DATABASE[clean+"市"]) return clean+"市";
+  var keys = Object.keys(CITY_DATABASE);
+  for (var i=0; i<keys.length; i++) {
+    if (keys[i].indexOf(clean) !== -1 || clean.indexOf(keys[i]) !== -1) {
+      return keys[i];
+    }
+  }
+  return name;
+}
+
+// ==================== 回落生成 ====================
+function generateFallbackCity(name) {
+  // 基于省份关键词判断区域
+  var region = "华东";
+  var regionTags = ["江南水乡","烟火小城"];
+  var regionKeywords = ["市井生活","慢节奏","烟火气"];
+  var regionFood = ["当地特色小吃","面食","河鲜"];
+  if (/西北|甘肃|青海|宁夏|新疆|陕西/.test(name)) {
+    region = "西北"; regionTags = ["西北风情","戈壁绿洲"]; regionKeywords = ["粗粝质感","西北豪情","历史纵深"]; regionFood = ["羊肉","面食","馕饼"];
+  } else if (/西南|四川|云南|贵州|西藏/.test(name)) {
+    region = "西南"; regionTags = ["山城风情","西南韵味"]; regionKeywords = ["山地生活","多民族","慢节奏"]; regionFood = ["辣味美食","米线","酸汤"];
+  } else if (/东北|黑龙江|吉林|辽宁/.test(name)) {
+    region = "东北"; regionTags = ["东北老工业基地","北国风光"]; regionKeywords = ["豪爽","工业记忆","寒冷中的温暖"]; regionFood = ["锅包肉","烧烤","饺子"];
+  } else if (/华北|北京|天津|河北|山西|内蒙古/.test(name)) {
+    region = "华北"; regionTags = ["华北平原","历史名城"]; regionKeywords = ["厚重","朴实","四季分明"]; regionFood = ["面食","驴肉","羊肉"];
+  } else if (/华南|广东|广西|海南/.test(name)) {
+    region = "华南"; regionTags = ["岭南风情","热带海滨"]; regionKeywords = ["骑楼老街","热带生活","老爸茶"]; regionFood = ["粉面","海鲜","糖水"];
+  } else if (/华中|湖北|湖南|河南/.test(name)) {
+    region = "华中"; regionTags = ["中原腹地","江湖之城"]; regionKeywords = ["烟火气","江湖感","码头文化"]; regionFood = ["热干面","臭豆腐","烩面"];
+  } else if (/华东|上海|江苏|浙江|安徽|福建|江西|山东/.test(name)) {
+    region = "华东"; regionTags = ["江南水乡","鱼米之乡"]; regionKeywords = ["精致","温婉","水乡风情"]; regionFood = ["汤面","小笼包","年糕"];
+  }
+  return {
+    name: name, province: "", region: region,
+    tags: [name+"印象"].concat(regionTags),
+    keywords: regionKeywords,
+    food: regionFood,
+    locations: [
+      {name: name+"老城区/老街区", type:"历史街区", note:"🎯 建议提前踩点，寻找最具本地生活气息的街巷", risk:null},
+      {name: name+"当地最大菜市场", type:"市井生活", note:"最好的城市人文素材都在菜市场", risk:"⚠️ 市场内人多拥挤"},
+      {name: name+"城市地标或滨水区域", type:"城市景观", note:"城市天际线/水岸的最佳观察点", risk:null}
+    ],
+    themes: [
+      {title: "老城区的最后日常", desc: "记录"+name+"老城区里正在消失的传统生活方式", value: "每一座城市都有自己即将消失的老街区和老手艺，这就是你的城市最值得被记录的瞬间"},
+      {title: "菜市场的"+name+"灵魂", desc: "跟拍"+name+"最大的菜市场从凌晨到中午的日常", value: "了解一座城市最好的方式就是去它的菜市场——那里有最真实的烟火气"},
+      {title: name+"的清晨与黄昏", desc: "从日出到日落，记录"+name+"最美的两个时段", value: "光线是最好的导演——清晨和黄昏的城市拥有完全不同的气质"}
+    ],
+    scriptFocus: 0,
+    sunrise: "06:00(夏)/07:30(冬)", sunset: "19:30(夏)/17:30(冬)",
+    bestHours: "05:30-08:00 / 17:00-19:00",
+    easterEggs: ["试试凌晨去"+name+"的火车站/汽车站——那里有最真实的人生百态","找到"+name+"最老的一家早餐店，从第一笼出锅开始拍"],
+    weather: "因数据有限，建议提前查询当地天气",
+    isFallback: true
+  };
+}
+
+// ==================== 板块一：城市气质画像 ====================
+function renderVibeCard(city, cityName) {
+  var tags = city.tags.map(function(t){return '<span class="tag">'+t+'</span>';}).join("");
+  var foodTags = city.food.map(function(f){return '<span class="tag">'+f+'</span>';}).join("");
+  var locHTML = city.locations.map(function(loc,i){
+    var riskHTML = loc.risk ? '<div class="loc-risk">'+loc.risk+'</div>' : "";
+    var noteHTML = loc.note ? '<div class="loc-note">'+loc.note+'</div>' : "";
+    return '<div class="loc-item"><div class="loc-num">'+(i+1)+'</div><div class="loc-info"><div class="loc-name">'+loc.name+'<span class="loc-type">'+loc.type+'</span></div>'+noteHTML+riskHTML+'</div></div>';
+  }).join("");
+
+  var narration = "当第一缕晨光照亮"+cityName+"的街巷，这座城市缓缓睁开了眼睛。"+city.keywords.slice(0,3).join("、")+"——"+cityName+"的故事，就藏在这些看似平凡却独一无二的日常里。";
+
+  return '<div class="card">'
+    +'<div class="card-header"><span class="card-icon">🎬</span><h2>板块一：城市气质画像</h2></div>'
+    +'<div style="margin-bottom:8px;font-size:0.8rem;color:#888;">📍 '+cityName+(city.province?' · '+city.province:'')+' · '+city.region+'</div>'
+    +'<div class="tag-list">'+tags+'</div>'
+    +'<div class="city-narration">🗣️ '+narration+'</div>'
+    +'<div class="food-section"><div class="food-label">🍜 特色美食</div><div class="tag-list">'+foodTags+'</div></div>'
+    +'<div style="margin-top:10px;font-size:0.85rem;color:#ccc;font-weight:600;">📸 推荐拍摄地点</div>'
+    +locHTML
+    +(city.weather?'<div style="margin-top:8px;font-size:0.75rem;color:#888;">🌤️ '+city.weather+'</div>':'')
+    +'</div>';
+}
+
+// ==================== 板块二：拍摄选题灵感 ====================
+function renderThemesCard(city) {
+  var themesHTML = city.themes.map(function(t,i){
+    return '<div class="theme-item">'
+      +'<div class="theme-title">#'+(i+1)+' '+t.title+'</div>'
+      +'<div class="theme-desc">'+t.desc+'</div>'
+      +'<div class="theme-value">💡 '+t.value+'</div>'
+      +'</div>';
+  }).join("");
+  return '<div class="card">'
+    +'<div class="card-header"><span class="card-icon">💡</span><h2>板块二：拍摄选题灵感</h2></div>'
+    +themesHTML
+    +'</div>';
+}
+
+// ==================== 板块三：分镜脚本 ====================
+function renderStoryboardCard(city, cityName) {
+  var theme = city.themes[city.scriptFocus || 0];
+  // 生成12个镜头的分镜表
+  var shots = [
+    {no:1,type:"B",shot:"远景",desc:cityName+"城市天际线/地标全景，清晨薄雾中的苏醒",audio:"环境音：晨间鸟鸣+远处车流声",dur:"8s"},
+    {no:2,type:"B",shot:"全景",desc:city.locations[0].name+"入口处，第一个店主开门/第一位老人走进来的画面",audio:"环境音：卷帘门拉起的声音",dur:"6s"},
+    {no:3,type:"A",shot:"中景",desc:"拍摄对象（主角）出场——正在做TA日常的第一个动作",audio:"旁白：'在"+cityName+"，每一天都是这样开始的……'",dur:"12s"},
+    {no:4,type:"B",shot:"特写",desc:"手部特写——主角的手在做一件重复了无数次的熟练动作",audio:"环境音+细节音效（水声/工具声/食物声）",dur:"6s"},
+    {no:5,type:"A",shot:"近景",desc:"主角面对镜头说话/接受采访（或主角与旁人互动的自然状态）",audio:"现场同期声：主角的对话或独白",dur:"15s"},
+    {no:6,type:"B",shot:"全景",desc:city.locations[0].name+"的完整环境——人群开始多起来，烟火气上升",audio:"环境音：人声渐多+脚步+叫卖声",dur:"8s"},
+    {no:7,type:"B",shot:"特写",desc:"城市细节特写——可能是食物、老物件、招牌、光影纹理",audio:"环境音+细节音效",dur:"5s"},
+    {no:8,type:"A",shot:"中景",desc:"主角与另一位人物互动——可能是顾客、邻居、路人",audio:"现场同期声：两人的对话片段",dur:"12s"},
+    {no:9,type:"B",shot:"远景→中景",desc:"从"+city.locations[0].name+"拉远到周边城市景观，展现街区与城市的关系",audio:"环境音渐强+轻微背景音乐起",dur:"10s"},
+    {no:10,type:"A",shot:"近景",desc:"主角收工/休息——展示一天的结束或一个时段的结束",audio:"旁白：'这样的日子，TA已经过了X年……'",dur:"10s"},
+    {no:11,type:"B",shot:"全景",desc:cityName+"的黄昏/日落——城市从白天过渡到夜晚",audio:"环境音：黄昏的城市声音",dur:"8s"},
+    {no:12,type:"B",shot:"远景",desc:"城市夜景或傍晚灯光亮起——收尾空镜",audio:"环境音渐弱，轻微音乐收尾",dur:"8s"}
+  ];
+
+  var rowsHTML = shots.map(function(s){
+    var typeClass = s.type==="A" ? "shot-a" : "shot-b";
+    var typeLabel = s.type==="A" ? "A-roll 主线" : "B-roll 空镜";
+    return '<tr><td>'+s.no+'</td><td class="'+typeClass+'">'+typeLabel+'</td><td>'+s.shot+'</td><td>'+s.desc+'</td><td>'+s.audio+'</td><td>'+s.dur+'</td></tr>';
+  }).join("");
+
+  var totalDur = "约2分30秒";
+  var aCount = shots.filter(function(s){return s.type==="A";}).length;
+  var bCount = shots.filter(function(s){return s.type==="B";}).length;
+
+  return '<div class="card">'
+    +'<div class="card-header"><span class="card-icon">🎞️</span><h2>板块三：完整分镜脚本（A-roll + B-roll双线结构）</h2></div>'
+    +'<div style="font-size:0.9rem;color:#e8b86d;font-weight:700;margin-bottom:8px;">📌 选定选题：'+theme.title+'</div>'
+    +'<div class="storyboard-meta">'
+      +'<span>🎬 全片时长：<strong>'+totalDur+'</strong></span>'
+      +'<span>🔢 镜头总数：<strong>'+shots.length+'个</strong></span>'
+      +'<span>🎤 A-roll占比：<strong>约'+Math.round(aCount/shots.length*100)+'%</strong>（'+(aCount)+'个镜头）</span>'
+      +'<span>🌄 B-roll占比：<strong>约'+Math.round(bCount/shots.length*100)+'%</strong>（'+(bCount)+'个镜头）</span>'
+    +'</div>'
+    +'<div class="sb-table-wrap"><table class="sb-table">'
+      +'<thead><tr><th>镜头号</th><th>类型</th><th>景别</th><th>画面描述</th><th>声音/旁白</th><th>时长</th></tr></thead>'
+      +'<tbody>'+rowsHTML+'</tbody>'
+    +'</table></div>'
+    +'<div style="margin-top:10px;font-size:0.75rem;color:#888;">💡 提示：全部手机拍摄即可完成，A-roll注意收音清晰，B-roll注意稳定运镜</div>'
+    +'</div>';
+}
+
+// ==================== 板块四：预算清单 ====================
+function renderBudgetCard(city, cityName) {
+  var homeCity = CURRENT_HOME;
+  var localShooting = (homeCity === cityName);
+  var travel = getTravelCost(homeCity, cityName);
+
+  var roundTripCost, transportLabel, localTransport;
+
+  if (localShooting) {
+    roundTripCost = 0;
+    transportLabel = "同城拍摄，无需跨城交通";
+    localTransport = 6;
+  } else {
+    if (travel.train === null && travel.bus === null) {
+      roundTripCost = 600; // 需要飞
+      transportLabel = homeCity+"⇄"+cityName+" 往返（建议飞抵后转当地交通）";
+    } else if (travel.train) {
+      roundTripCost = travel.train * 2; // 往返
+      transportLabel = homeCity+"⇄"+cityName+" 高铁往返（"+travel.duration+"）";
+    } else {
+      roundTripCost = travel.bus * 2;
+      transportLabel = homeCity+"⇄"+cityName+" 大巴往返（"+travel.duration+"）";
+    }
+    localTransport = 12;
+  }
+
+  var foodCost = localShooting ? 12 : 20;
+  var humanCost = 8;
+  var total = roundTripCost + localTransport + foodCost + humanCost;
+
+  // 极限省钱版
+  var extremeRoundTrip = localShooting ? 0 : (travel.bus ? travel.bus * 2 : Math.floor(roundTripCost * 0.5));
+  if (!localShooting && travel.train && travel.bus === null) {
+    extremeRoundTrip = Math.floor(travel.train * 0.4) * 2; // K字头硬座
+  }
+  var extremeLocal = localShooting ? 0 : 4;
+  var extremeFood = 8;
+  var extremeHuman = 5;
+  var extremeTotal = extremeRoundTrip + extremeLocal + extremeFood + extremeHuman;
+
+  return '<div class="card">'
+    +'<div class="card-header"><span class="card-icon">💰</span><h2>板块四：穷鬼版预算清单</h2></div>'
+    +'<div style="font-size:0.82rem;color:#a0a0a0;margin-bottom:10px;">🏠 出发城市：'+homeCity+' → 🎯 拍摄城市：'+cityName+'</div>'
+    +'<div class="budget-section">'
+      +'<div class="budget-row"><span>🚄 跨城往返交通</span><span class="cost">¥'+roundTripCost+'</span></div>'
+      +'<div style="font-size:0.72rem;color:#888;margin-bottom:4px;">'+transportLabel+'</div>'
+      +'<div class="budget-row"><span>🚌 当地交通（公交/地铁/单车）</span><span class="cost">¥'+localTransport+'</span></div>'
+      +'<div class="budget-row"><span>🍞 饮食（水+面包'+(localShooting?'':'+一顿简餐')+'）</span><span class="cost">¥'+foodCost+'</span></div>'
+      +'<div class="budget-row"><span>📱 设备（全手机拍摄）</span><span class="cost">¥0</span></div>'
+      +'<div class="budget-row"><span>🎁 人情支出（给拍摄对象买水/水果）</span><span class="cost">¥'+humanCost+'</span></div>'
+    +'</div>'
+    +'<div class="budget-total">'
+      +'<div class="total-row"><span>📊 总计（正常版）</span><span>¥'+total+'</span></div>'
+      +'<div class="extreme-row"><span>⚡ 极限省钱版</span><span>¥'+extremeTotal+'</span></div>'
+    +'</div>'
+    +'<div class="budget-notice">'
+      +'💡 <strong>极限省钱策略：</strong>'
+      +(localShooting ? '步行+共享单车代替公交（¥0）、自带水杯和干粮、找免费公共场所拍摄。' : '选K字头慢车硬座代替高铁、自带干粮和水杯、当天往返不住宿、用共享单车代替公交。')
+      +'<br>⚠️ 以上为单人单日拍摄的极简预算，未含住宿（建议当天往返）。如拍摄地较远需住宿，预留青旅费¥50-80/晚。'
+    +'</div>'
+    +'</div>';
+}
+
+// ==================== 板块五：拍摄Tips ====================
+function renderTipsCard(city, cityName) {
+  return '<div class="card">'
+    +'<div class="card-header"><span class="card-icon">📋</span><h2>板块五：单人拍摄执行Tips</h2></div>'
+    +'<ul class="tips-list">'
+      +'<li><span class="tip-icon">🕐</span><span class="tip-content"><strong>最佳拍摄时段：</strong>'+city.bestHours+'<br><span style="font-size:0.78rem;color:#888;">日出：'+city.sunrise+' | 日落：'+city.sunset+'</span></span></li>'
+      +'<li><span class="tip-icon">📱</span><span class="tip-content"><strong>手机拍摄防抖：</strong>双手握持、手肘夹紧身体两侧形成"人体三脚架"；走动时膝盖微弯、小步伐"忍者步"；可利用栏杆/墙壁/垃圾桶作为临时支撑；iPhone用户开启"运动模式"（Action Mode）。</span></li>'
+      +'<li><span class="tip-icon">🎙️</span><span class="tip-content"><strong>手机收音技巧：</strong>拍摄A-roll对话时，手机距离说话人不超过1米；避开风口（风声是最大的敌人）；可用另一台手机+耳机线作为简易领夹麦（插在衣领上录音，后期合成）；嘈杂环境用手势示意对方稍等，等环境音过去再说话。</span></li>'
+      +'<li><span class="tip-icon">🔋</span><span class="tip-content"><strong>续航与存储：</strong>带充电宝（至少10000mAh），手机拍摄耗电极快；出发前清理存储空间，保证至少20GB可用；建议飞行模式拍摄以避免通知干扰。</span></li>'
+      +'<li><span class="tip-icon">☀️</span><span class="tip-content"><strong>光线常识：</strong>日出后1小时和日落前1小时是"黄金时刻"，光线最柔和；正午11:00-14:00光线太硬（顶光），尽量在阴影下拍摄人物。</span></li>'
+    +'</ul>'
+    +'<div class="tips-quote">🗣️ <strong>征求陌生人拍摄同意——话术参考：</strong><br>① "您好，我是在校学生，正在做一个城市纪录片的拍摄练习，感觉您/您这个场景特别有故事感，请问可以拍几分钟吗？不会耽误您太久。"<br>② "阿姨/叔叔您好，我是拍短视频的学生，想记录一下咱'+cityName+'最有烟火气的地方，绝对不发到不好的地方，能拍您一小段吗？拍完给您看看！"</div>'
+    +'</div>';
+}
+
+// ==================== 板块六：彩蛋 ====================
+function renderEasterEggCard(city) {
+  var eggs = city.easterEggs;
+  // 随机选1-2条
+  var selected = [];
+  var indices = [];
+  while (indices.length < Math.min(2, eggs.length)) {
+    var r = Math.floor(Math.random() * eggs.length);
+    if (indices.indexOf(r) === -1) indices.push(r);
+  }
+  indices.forEach(function(i){ selected.push(eggs[i]); });
+
+  var eggsHTML = selected.map(function(e){
+    return '<div class="easter-egg">🎲 '+e+'</div>';
+  }).join("");
+
+  return '<div class="card">'
+    +'<div class="card-header"><span class="card-icon">🎁</span><h2>板块六：随机灵感彩蛋</h2></div>'
+    +eggsHTML
+    +'<div style="font-size:0.75rem;color:#666;margin-top:6px;">💡 每次生成随机抽取，刷新页面可获取不同彩蛋</div>'
+    +'</div>';
+}
+
+// ==================== 主渲染函数 ====================
+function renderAll(cityName) {
+  var loading = document.getElementById("loading");
+  var results = document.getElementById("results");
+  loading.classList.add("active");
+  results.classList.remove("active");
+  results.innerHTML = "";
+
+  // 模拟加载延迟（给用户反馈感）
+  setTimeout(function(){
+    var city = findCity(cityName);
+    var actualName = findCityName(cityName);
+    var html = "";
+
+    if (!city) {
+      city = generateFallbackCity(cityName);
+      actualName = cityName;
+      html += '<div class="fallback-notice">⚠️ 该城市数据正在完善中，以下为根据地域特色智能生成的内容。欢迎反馈补充！</div>';
+    }
+
+    html += renderVibeCard(city, actualName);
+    html += renderThemesCard(city);
+    html += renderStoryboardCard(city, actualName);
+    html += renderBudgetCard(city, actualName);
+    html += renderTipsCard(city, actualName);
+    html += renderEasterEggCard(city);
+
+    results.innerHTML = html;
+    loading.classList.remove("active");
+    results.classList.add("active");
+
+    // 滚动到结果区域
+    results.scrollIntoView({behavior:"smooth",block:"start"});
+  }, 400);
+}
+
+// ==================== 事件处理 ====================
+function onGenerate() {
+  var input = document.getElementById("cityInput");
+  var cityName = input.value.trim();
+  if (!cityName) { alert("请输入一个城市名称 😊"); return; }
+  CURRENT_HOME = getHomeCity();
+  renderAll(cityName);
+}
+
+function onRandom() {
+  var keys = Object.keys(CITY_DATABASE);
+  var randomKey = keys[Math.floor(Math.random() * keys.length)];
+  document.getElementById("cityInput").value = randomKey;
+  CURRENT_HOME = getHomeCity();
+  renderAll(randomKey);
+}
+
+// 回车键触发搜索
+document.getElementById("cityInput").addEventListener("keydown", function(e){
+  if (e.key === "Enter") { onGenerate(); }
+});
+
+// ==================== 默认加载 ====================
+window.addEventListener("DOMContentLoaded", function(){
+  document.getElementById("cityInput").value = "成都";
+  CURRENT_HOME = getHomeCity();
+  renderAll("成都");
+});
+
+</script>
+</body>
+</html>
