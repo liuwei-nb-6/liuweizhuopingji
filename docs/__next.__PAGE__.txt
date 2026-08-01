@@ -1,0 +1,7 @@
+1:"$Sreact.fragment"
+2:I[1903,["500","static/chunks/500-c99b8dfd3de17c86.js","170","static/chunks/170-d6bce93f950f6031.js","974","static/chunks/app/page-c4b33c18b5f27145.js"],"default"]
+3:I[7310,["500","static/chunks/500-c99b8dfd3de17c86.js","170","static/chunks/170-d6bce93f950f6031.js","974","static/chunks/app/page-c4b33c18b5f27145.js"],"default"]
+4:I[484,[],"OutletBoundary"]
+5:"$Sreact.suspense"
+0:{"rsc":["$","$1","c",{"children":[["$","div",null,{"className":"min-h-screen pt-24 pb-16 px-6 flex flex-col items-center","children":["$","div",null,{"className":"max-w-7xl w-full","children":[["$","div",null,{"className":"text-center mb-20 mt-8","children":[["$","h1",null,{"className":"text-5xl md:text-6xl font-light tracking-widest text-white animate-fade-in","children":"PORTFOLIO"}],["$","p",null,{"className":"mt-6 text-sm text-[#666] tracking-[0.2em] animate-fade-in-delay-1","children":"图片 / 视频 / AI"}]]}],["$","div",null,{"className":"flex justify-center mb-20 animate-fade-in-delay-2","children":["$","$L2",null,{}]}],["$","div",null,{"className":"animate-fade-in-delay-2","children":["$","$L3",null,{}]}]]}]}],null,["$","$L4",null,{"children":["$","$5",null,{"name":"Next.MetadataOutlet","children":"$@6"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"iOAzNzt_w5L-wfSRX6ioG"}
+6:null

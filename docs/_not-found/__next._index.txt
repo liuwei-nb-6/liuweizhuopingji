@@ -1,0 +1,6 @@
+1:"$Sreact.fragment"
+2:I[8372,["500","static/chunks/500-c99b8dfd3de17c86.js","177","static/chunks/app/layout-628c2b252331af4f.js"],"default"]
+3:I[7121,[],""]
+4:I[4581,[],""]
+:HL["/_next/static/css/2719838faa4921a7.css","style"]
+0:{"rsc":["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/css/2719838faa4921a7.css","precedence":"next"}]],["$","html",null,{"lang":"zh-CN","className":"h-full antialiased","children":["$","body",null,{"className":"min-h-full flex flex-col bg-[#0a0a0a] text-[#ededed]","children":[["$","$L2",null,{}],["$","main",null,{"className":"flex-1","children":["$","$L3",null,{"parallelRouterKey":"children","template":["$","$L4",null,{}]}]}],["$","footer",null,{"className":"border-t border-[#1a1a1a] py-6 px-6 text-center text-xs text-[#444]","children":["© ",2026," Portfolio"]}]]}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"iOAzNzt_w5L-wfSRX6ioG"}
